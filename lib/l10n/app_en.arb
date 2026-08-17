@@ -1,0 +1,11 @@
+{
+  "@@locale": "en",
+  "appName": "HappFest",
+  "genericErrorTitle": "Something went wrong",
+  "genericErrorMessage": "We couldn't complete this action. Please try again.",
+  "retryButton": "Try again",
+  "loginEmailLabel": "Email",
+  "loginPasswordLabel": "Password",
+  "loginSubmitButton": "Log in",
+  "searchPlaceholder": "Search cakes, decor, catering..."
+}

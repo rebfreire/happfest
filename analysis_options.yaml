@@ -1,0 +1,27 @@
+# This file configures the analyzer, which statically analyzes Dart code to
+# check for errors, warnings, and lints.
+#
+# The issues identified by the analyzer are surfaced in the UI of Dart-enabled
+# IDEs (https://dart.dev/tools#ides-and-editors). The analyzer can also be
+# invoked from the command line by running `flutter analyze`.
+
+include: package:very_good_analysis/analysis_options.yaml
+
+analyzer:
+  exclude:
+    - "**/*.freezed.dart"
+    - "**/*.g.dart"
+    - "**/*.gr.dart"
+
+linter:
+  rules:
+    # Freezed/json_serializable generated code and this codebase lean on
+    # constructor-based DI and immutable models; relax a couple of
+    # very_good_analysis defaults that fight that pattern.
+    public_member_api_docs: false
+    # The `flutter`/`flutter_test` SDK entries must stay first in each
+    # dependency block by convention — this rule fights that and flags it.
+    sort_pub_dependencies: false
+
+# Additional information about this file can be found at
+# https://dart.dev/guides/language/analysis-options

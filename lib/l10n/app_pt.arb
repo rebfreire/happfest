@@ -1,0 +1,14 @@
+{
+  "@@locale": "pt",
+  "appName": "HappFest",
+  "@appName": {
+    "description": "Nome do app, exibido no splash e nas configurações do sistema"
+  },
+  "genericErrorTitle": "Algo deu errado",
+  "genericErrorMessage": "Não conseguimos completar essa ação. Tente novamente.",
+  "retryButton": "Tentar novamente",
+  "loginEmailLabel": "E-mail",
+  "loginPasswordLabel": "Senha",
+  "loginSubmitButton": "Entrar",
+  "searchPlaceholder": "Buscar bolos, decoração, buffet..."
+}

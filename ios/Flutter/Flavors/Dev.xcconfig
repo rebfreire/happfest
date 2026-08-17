@@ -1,0 +1,3 @@
+// Flavor "dev" — mesma API de produção por enquanto (ver AGENTS.md seção 0).
+PRODUCT_BUNDLE_IDENTIFIER = br.com.comcode.happfest.dev
+PRODUCT_NAME = HappFest Dev
