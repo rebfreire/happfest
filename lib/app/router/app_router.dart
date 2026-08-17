@@ -1,17 +1,29 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
+import 'package:happfest/design_system/design_system_storybook_page.dart';
 import 'package:happfest/design_system/tokens/app_spacing.dart';
+import 'package:happfest/features/auth/presentation/pages/login_page.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
-    initialLocation: '/',
+    initialLocation: '/login',
     routes: [
+      GoRoute(
+        path: '/login',
+        builder: (context, state) => const LoginPage(),
+      ),
       GoRoute(
         path: '/',
         builder: (context, state) => const _SetupPlaceholderPage(),
       ),
+      if (kDebugMode)
+        GoRoute(
+          path: '/dev/design-system',
+          builder: (context, state) => const DesignSystemStorybookPage(),
+        ),
     ],
   );
 });
@@ -42,6 +54,13 @@ class _SetupPlaceholderPage extends StatelessWidget {
                 'Setup da Fase 0 concluído.',
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
+              if (kDebugMode) ...[
+                const SizedBox(height: AppSpacing.md),
+                TextButton(
+                  onPressed: () => context.push('/dev/design-system'),
+                  child: const Text('Ver Design System'),
+                ),
+              ],
             ],
           ),
         ),
