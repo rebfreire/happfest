@@ -25,6 +25,11 @@ class HomePage extends ConsumerWidget {
       appBar: AppBar(
         title: Text(l10n.appName),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.shopping_cart_outlined),
+            tooltip: 'Carrinho',
+            onPressed: () => context.push('/cart'),
+          ),
           if (kDebugMode)
             IconButton(
               icon: const Icon(Icons.palette_outlined),

@@ -8,6 +8,8 @@ import 'package:happfest/design_system/feedback/app_error_state.dart';
 import 'package:happfest/design_system/feedback/app_loading.dart';
 import 'package:happfest/design_system/feedback/app_snackbar.dart';
 import 'package:happfest/design_system/tokens/app_spacing.dart';
+import 'package:happfest/features/cart/data/cart_providers.dart';
+import 'package:happfest/features/cart/presentation/controllers/cart_providers.dart';
 import 'package:happfest/features/products/domain/entities/product_detail.dart';
 import 'package:happfest/features/products/domain/entities/product_type.dart';
 import 'package:happfest/features/products/presentation/controllers/product_detail_providers.dart';
@@ -47,14 +49,51 @@ class ProductDetailPage extends ConsumerWidget {
   }
 }
 
-class _ProductDetailContent extends StatelessWidget {
+class _ProductDetailContent extends ConsumerStatefulWidget {
   const _ProductDetailContent({required this.detail, this.storeName});
 
   final ProductDetail detail;
   final String? storeName;
 
   @override
+  ConsumerState<_ProductDetailContent> createState() =>
+      _ProductDetailContentState();
+}
+
+class _ProductDetailContentState extends ConsumerState<_ProductDetailContent> {
+  var _isAddingToCart = false;
+
+  Future<void> _addToCart() async {
+    final detail = widget.detail;
+    final variantId = detail.defaultVariantId;
+    if (variantId == null) {
+      AppSnackbar.error(context, 'Este item não está disponível no momento.');
+      return;
+    }
+
+    setState(() => _isAddingToCart = true);
+    final result = await ref
+        .read(addCartItemUseCaseProvider)
+        .call(
+          productVariantId: variantId,
+          pricingUnitQuantity: detail.pricingUnitMin ?? 1,
+        );
+    if (!mounted) return;
+    setState(() => _isAddingToCart = false);
+
+    switch (result) {
+      case Ok():
+        ref.invalidate(cartProvider);
+        AppSnackbar.success(context, 'Adicionado ao carrinho.');
+      case Err(:final failure):
+        AppSnackbar.error(context, failure.message);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final detail = widget.detail;
+    final storeName = widget.storeName;
     final currency = NumberFormat.currency(locale: 'pt_BR', symbol: r'R$');
     final hasPriceRange =
         detail.pricingUnitMax != null &&
@@ -90,7 +129,7 @@ class _ProductDetailContent extends StatelessWidget {
                     if (storeName != null) ...[
                       const SizedBox(height: AppSpacing.xs),
                       Text(
-                        storeName!,
+                        storeName,
                         style: Theme.of(context).textTheme.bodyMedium,
                       ),
                     ],
@@ -131,10 +170,8 @@ class _ProductDetailContent extends StatelessWidget {
             child: AppButton.confirm(
               label: 'Adicionar ao carrinho',
               expanded: true,
-              onPressed: () => AppSnackbar.info(
-                context,
-                'Carrinho ainda não disponível nesta versão.',
-              ),
+              isLoading: _isAddingToCart,
+              onPressed: _isAddingToCart ? null : _addToCart,
             ),
           ),
         ),

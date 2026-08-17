@@ -14,6 +14,7 @@ abstract class ProductDetail with _$ProductDetail {
     required String name,
     required String storeId,
     required ProductType productType,
+    String? defaultVariantId,
     @Default([]) List<String> imageUrls,
     String? storeName,
     String? description,

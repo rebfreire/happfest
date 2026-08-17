@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:happfest/design_system/design_system_storybook_page.dart';
 import 'package:happfest/features/auth/presentation/pages/login_page.dart';
+import 'package:happfest/features/cart/presentation/pages/cart_page.dart';
 import 'package:happfest/features/home/presentation/pages/home_page.dart';
 import 'package:happfest/features/products/presentation/pages/product_detail_page.dart';
 
@@ -19,6 +20,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           storeName: state.extra as String?,
         ),
       ),
+      GoRoute(path: '/cart', builder: (context, state) => const CartPage()),
       if (kDebugMode)
         GoRoute(
           path: '/dev/design-system',
