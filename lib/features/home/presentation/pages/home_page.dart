@@ -123,8 +123,16 @@ class _ProductGrid extends ConsumerWidget {
               childAspectRatio: 0.68,
             ),
             itemCount: value.content.length,
-            itemBuilder: (context, index) =>
-                ProductSummaryCard(product: value.content[index]),
+            itemBuilder: (context, index) {
+              final product = value.content[index];
+              return ProductSummaryCard(
+                product: product,
+                onTap: () => context.push(
+                  '/products/${product.id}',
+                  extra: product.storeName,
+                ),
+              );
+            },
           ),
           Err(:final failure) => AppErrorState(
             failure: failure,
