@@ -1,0 +1,1 @@
+enum ProductType { physical, service }

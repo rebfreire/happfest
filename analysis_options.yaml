@@ -22,6 +22,10 @@ linter:
     # The `flutter`/`flutter_test` SDK entries must stay first in each
     # dependency block by convention — this rule fights that and flags it.
     sort_pub_dependencies: false
+    # Repository interfaces intentionally start with one method and grow —
+    # the Clean Architecture pattern this codebase follows (AGENTS.md
+    # seção 2) requires the interface either way.
+    one_member_abstracts: false
 
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options
