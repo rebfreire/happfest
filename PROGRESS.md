@@ -21,6 +21,7 @@ O app do fornecedor é um projeto separado, a ser iniciado depois.
 | 3 | Home (busca, categorias, grid de produtos) | ✅ Concluída |
 | 4 | Detalhe do produto | ✅ Concluída |
 | 5 | Carrinho | ✅ Concluída |
+| 5.5 | Shell do app (bottom nav) | ✅ Concluída |
 | 6 | Checkout | ⏳ Não iniciado |
 | 7 | Conta (endereços, festas, pedidos) | ⏳ Não iniciado |
 | 8 | Login social (Google) | ⏳ Não iniciado (fora da v1) |
@@ -29,6 +30,10 @@ Detalhes de cada feature em `docs/progress/`.
 
 ## Pendências conhecidas
 
+- **Carrinho retorna "Algo deu errado"**: esperado enquanto o login estiver
+  no bypass de debug — sem token real salvo, `POST /cart/items` volta 401 e
+  cai no `UnknownFailure` genérico. Só será resolvido quando o login real
+  estiver funcionando.
 - **Login real**: ao testar com credenciais reais no simulador iOS, o fluxo de
   login não completou como esperado (precisa diagnóstico — pode ser erro de
   API/credenciais ou bug em `AuthRepositoryImpl`/`LoginController`). Como
@@ -57,5 +62,6 @@ fvm flutter run -d <device-id> --target=lib/main_dev.dart
 1. Diagnosticar e corrigir o login real; remover o bypass de debug.
 2. Checkout (fluxo multi-step: Itens → Festa → Entrega → Resumo, conforme o
    site atual).
-3. Área de conta (endereços, festas, pedidos).
+3. Área de conta (endereços, festas, pedidos) — substituirá os placeholders
+   das abas Categorias/Festas/Perfil do shell.
 4. Configurar flavors no Xcode e `flutterfire configure`.

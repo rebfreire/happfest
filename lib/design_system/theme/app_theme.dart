@@ -11,13 +11,22 @@ abstract final class AppTheme {
 
   static ThemeData _build({required Brightness brightness}) {
     final isDark = brightness == Brightness.dark;
-    final colorScheme = ColorScheme.fromSeed(
-      seedColor: AppColors.primary,
-      secondary: AppColors.secondary,
-      tertiary: AppColors.accent,
-      error: AppColors.dangerStrong,
-      brightness: brightness,
-    );
+    // `ColorScheme.fromSeed` gera uma paleta tonal M3 a partir da cor
+    // semente e não preserva o hex exato — por isso fixamos primary/
+    // secondary/tertiary com as cores reais da marca via `copyWith`.
+    final colorScheme =
+        ColorScheme.fromSeed(
+          seedColor: AppColors.primary,
+          error: AppColors.dangerStrong,
+          brightness: brightness,
+        ).copyWith(
+          primary: AppColors.primary,
+          onPrimary: AppColors.onPrimary,
+          secondary: AppColors.secondary,
+          onSecondary: AppColors.onPrimary,
+          tertiary: AppColors.accent,
+          onTertiary: AppColors.surface900,
+        );
 
     return ThemeData(
       useMaterial3: true,

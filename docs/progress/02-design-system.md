@@ -26,6 +26,16 @@ Extraídos ao vivo do CSS computado do site de produção
 - Catálogo visual navegável em `/dev/design-system` (rota debug-only, atrás
   de `kDebugMode`).
 
+## Bug corrigido (2026-08-18)
+
+`AppTheme` usava `ColorScheme.fromSeed(seedColor: AppColors.primary, ...)`,
+mas o algoritmo de paleta tonal do Material 3 **não preserva o hex exato da
+cor semente** — o rosa `#FF3F81` virava um tom mais apagado no
+`colorScheme.primary` (visível nos botões/badges, destoando das cores reais
+do site). Corrigido fixando `primary`/`secondary`/`tertiary` via `copyWith`
+em [`app_theme.dart`](../../lib/design_system/theme/app_theme.dart) logo
+após a geração da paleta base.
+
 ## Notas
 
 - `very_good_analysis` como base de lint, com 2 overrides locais em
