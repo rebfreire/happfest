@@ -22,14 +22,28 @@ O app do fornecedor é um projeto separado, a ser iniciado depois.
 | 4 | Detalhe do produto | ✅ Concluída |
 | 5 | Carrinho | ✅ Concluída |
 | 5.5 | Shell do app (bottom nav) | ✅ Concluída |
-| 6 | Checkout | ⏳ Não iniciado |
-| 7 | Conta (endereços, festas, pedidos) | ⏳ Não iniciado |
-| 8 | Login social (Google) | ⏳ Não iniciado (fora da v1) |
+| 6 | Categorias (navegação em árvore + produtos) | ✅ Concluída |
+| 7 | Conta (perfil, endereços, pedidos — leitura) | ✅ Concluída |
+| 8 | Festas (listagem) | ✅ Concluída |
+| 9 | Checkout | ⏳ Não iniciado |
+| 10 | Login social (Google) | ⏳ Não iniciado (fora da v1) |
 
 Detalhes de cada feature em `docs/progress/`.
 
 ## Pendências conhecidas
 
+- **Criação de endereço/festa não implementada**: `POST /customers/me/addresses`
+  e `POST /customers/{id}/parties` exigem `cityCodigoIbge`/`stateCodigoUf`
+  (códigos IBGE), e a API não expõe endpoint de busca desses códigos — falta
+  infraestrutura de seletor de cidade/UF. As telas de Conta e Festas hoje só
+  leem (listar endereços, pedidos e festas); criar/editar fica para depois.
+- **Contrato da API (`docs/api/openapi.json`) não declara nenhum campo como
+  `required` em nenhum schema de resposta** (nem no `LoginResponse`, que já
+  causou o bug do token nulo). Os DTOs novos (Conta, Festas, Categorias)
+  tratam só `id` como obrigatório e todo o resto como nullable/com default,
+  por segurança. Os DTOs mais antigos (produto, carrinho, categoria) ainda
+  não passaram por essa auditoria — funcionam bem com dados reais até agora,
+  mas vale revisar se aparecerem novos casos de tela travando sem erro.
 - **Carrinho retorna "Algo deu errado"**: esperado enquanto o login estiver
   no bypass de debug — sem token real salvo, `POST /cart/items` volta 401 e
   cai no `UnknownFailure` genérico. Só será resolvido quando o backend
@@ -64,6 +78,10 @@ fvm flutter run -d <device-id> --target=lib/main_dev.dart
    validar o login real e remover o bypass de debug.
 2. Checkout (fluxo multi-step: Itens → Festa → Entrega → Resumo, conforme o
    site atual).
-3. Área de conta (endereços, festas, pedidos) — substituirá os placeholders
-   das abas Categorias/Festas/Perfil do shell.
+3. Criação/edição de endereço e festa — depende de uma solução para o
+   seletor de cidade/UF (código IBGE).
 4. Configurar flavors no Xcode e `flutterfire configure`.
+5. Validar visualmente as abas Categorias/Festas/Perfil no simulador — a
+   automação de tap esbarrou de novo na flakiness já documentada na tela de
+   login; a lógica está coberta por 49 testes automatizados, mas a
+   verificação visual ficou pendente.

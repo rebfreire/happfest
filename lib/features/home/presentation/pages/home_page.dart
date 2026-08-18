@@ -3,16 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
-import 'package:happfest/core/error/failure.dart';
 import 'package:happfest/core/error/result.dart';
 import 'package:happfest/design_system/components/app_chip.dart';
 import 'package:happfest/design_system/components/app_form_fields.dart';
-import 'package:happfest/design_system/feedback/app_empty_state.dart';
-import 'package:happfest/design_system/feedback/app_error_state.dart';
-import 'package:happfest/design_system/feedback/app_loading.dart';
 import 'package:happfest/design_system/tokens/app_spacing.dart';
 import 'package:happfest/features/home/presentation/controllers/home_providers.dart';
-import 'package:happfest/features/home/presentation/widgets/product_summary_card.dart';
+import 'package:happfest/features/products/presentation/widgets/product_results_grid.dart';
 import 'package:happfest/l10n/generated/app_localizations.dart';
 
 class HomePage extends ConsumerWidget {
@@ -111,45 +107,13 @@ class _ProductGrid extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final productsAsync = ref.watch(homeProductsProvider);
-
-    return productsAsync.when(
-      loading: () => const AppLoading.skeleton(),
-      error: (error, stackTrace) => AppErrorState(
-        failure: const UnknownFailure(),
-        onRetry: () => ref.invalidate(homeProductsProvider),
+    return ProductResultsGrid(
+      productsAsync: ref.watch(homeProductsProvider),
+      onRetry: () => ref.invalidate(homeProductsProvider),
+      onTapProduct: (product) => context.push(
+        '/products/${product.id}',
+        extra: product.storeName,
       ),
-      data: (result) {
-        return switch (result) {
-          Ok(:final value) when value.content.isEmpty => const AppEmptyState(
-            message: 'Nenhum produto encontrado.',
-          ),
-          Ok(:final value) => GridView.builder(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              mainAxisSpacing: AppSpacing.md,
-              crossAxisSpacing: AppSpacing.md,
-              childAspectRatio: 0.6,
-            ),
-            itemCount: value.content.length,
-            itemBuilder: (context, index) {
-              final product = value.content[index];
-              return ProductSummaryCard(
-                product: product,
-                onTap: () => context.push(
-                  '/products/${product.id}',
-                  extra: product.storeName,
-                ),
-              );
-            },
-          ),
-          Err(:final failure) => AppErrorState(
-            failure: failure,
-            onRetry: () => ref.invalidate(homeProductsProvider),
-          ),
-        };
-      },
     );
   }
 }

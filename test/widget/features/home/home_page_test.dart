@@ -24,6 +24,9 @@ class _FakeCategoryRepository implements CategoryRepository {
 
   @override
   Future<Result<List<Category>>> getRootCategories() async => result;
+
+  @override
+  Future<Result<List<Category>>> getChildren(String path) async => result;
 }
 
 class _FakeProductRepository implements ProductRepository {

@@ -19,12 +19,9 @@ barra de navegação inferior presente nos protótipos de referência
   preservando sua própria pilha de navegação ao trocar de aba. `/login`,
   `/products/:id` e `/dev/design-system` ficam fora do shell (sem barra
   inferior).
-- [`ComingSoonPage`](../../lib/app/shell/coming_soon_page.dart): placeholder
-  reutilizável (`AppScaffold` + `AppEmptyState`) para as abas Categorias,
-  Festas e Perfil, cujas features ainda não foram construídas.
+## Atualização (2026-08-18)
 
-## Pendências
-
-Categorias, Festas e Perfil hoje são placeholders "em breve" — serão
-substituídos pelas features reais (navegação por categoria, gestão de
-festas, área de conta) nas próximas etapas.
+As 5 abas agora são todas reais — `ComingSoonPage` foi removida.
+Categorias → [`docs/progress/08-categorias.md`](08-categorias.md), Festas →
+[`docs/progress/10-festas.md`](10-festas.md), Perfil →
+[`docs/progress/09-conta.md`](09-conta.md).

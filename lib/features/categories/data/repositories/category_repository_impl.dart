@@ -13,9 +13,22 @@ class CategoryRepositoryImpl implements CategoryRepository {
   final Dio _dio;
 
   @override
-  Future<Result<List<Category>>> getRootCategories() async {
+  Future<Result<List<Category>>> getRootCategories() {
+    return _run(() => _dio.get<List<dynamic>>('/categories'));
+  }
+
+  @override
+  Future<Result<List<Category>>> getChildren(String path) {
+    return _run(
+      () => _dio.get<List<dynamic>>('/categories/path/$path/children'),
+    );
+  }
+
+  Future<Result<List<Category>>> _run(
+    Future<Response<List<dynamic>>> Function() request,
+  ) async {
     try {
-      final response = await _dio.get<List<dynamic>>('/categories');
+      final response = await request();
       final categories = response.data!
           .cast<Map<String, dynamic>>()
           .map(CategoryResponseDto.fromJson)

@@ -3,4 +3,6 @@ import 'package:happfest/features/categories/domain/entities/category.dart';
 
 abstract interface class CategoryRepository {
   Future<Result<List<Category>>> getRootCategories();
+
+  Future<Result<List<Category>>> getChildren(String path);
 }
