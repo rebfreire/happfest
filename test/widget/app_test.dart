@@ -17,6 +17,6 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('HappFest'), findsOneWidget);
+    expect(find.bySemanticsLabel('HappFest'), findsOneWidget);
   });
 }

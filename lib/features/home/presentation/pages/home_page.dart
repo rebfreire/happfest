@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:happfest/core/error/failure.dart';
 import 'package:happfest/core/error/result.dart';
@@ -23,7 +24,11 @@ class HomePage extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.appName),
+        title: SvgPicture.asset(
+          'assets/images/happ_logo.svg',
+          height: 36,
+          semanticsLabel: l10n.appName,
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.shopping_cart_outlined),

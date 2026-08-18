@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:happfest/design_system/components/app_button.dart';
 import 'package:happfest/design_system/components/app_form_layout.dart';
@@ -69,12 +70,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               constraints: const BoxConstraints(maxWidth: 400),
               child: AppFormLayout(
                 children: [
-                  Text(
-                    l10n.appName,
-                    style: Theme.of(context).textTheme.headlineMedium,
-                    textAlign: TextAlign.center,
+                  SvgPicture.asset(
+                    'assets/images/happ_logo.svg',
+                    height: 88,
+                    semanticsLabel: l10n.appName,
                   ),
-                  const SizedBox(height: AppSpacing.sm),
+                  const SizedBox(height: AppSpacing.md),
                   AppTextField(
                     label: l10n.loginEmailLabel,
                     controller: _emailController,
