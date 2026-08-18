@@ -125,7 +125,7 @@ class _ProductGrid extends ConsumerWidget {
               crossAxisCount: 2,
               mainAxisSpacing: AppSpacing.md,
               crossAxisSpacing: AppSpacing.md,
-              childAspectRatio: 0.68,
+              childAspectRatio: 0.6,
             ),
             itemCount: value.content.length,
             itemBuilder: (context, index) {
