@@ -17,4 +17,9 @@ abstract interface class CartRepository {
   });
 
   Future<Result<Cart>> removeItem(String itemId);
+
+  /// Associa o carrinho anônimo (identificado pelo `X-Cart-Session-Id`
+  /// atual) ao usuário recém-logado. Chamado uma vez, logo após um login
+  /// bem-sucedido — ver `MergeCartUseCase`.
+  Future<Result<Cart>> mergeAnonymousCart();
 }

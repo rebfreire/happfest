@@ -4,6 +4,7 @@ import 'package:happfest/features/cart/data/repositories/cart_repository_impl.da
 import 'package:happfest/features/cart/domain/repositories/cart_repository.dart';
 import 'package:happfest/features/cart/domain/usecases/add_cart_item_usecase.dart';
 import 'package:happfest/features/cart/domain/usecases/get_cart_usecase.dart';
+import 'package:happfest/features/cart/domain/usecases/merge_cart_usecase.dart';
 import 'package:happfest/features/cart/domain/usecases/remove_cart_item_usecase.dart';
 import 'package:happfest/features/cart/domain/usecases/update_cart_item_usecase.dart';
 
@@ -25,4 +26,8 @@ final updateCartItemUseCaseProvider = Provider<UpdateCartItemUseCase>((ref) {
 
 final removeCartItemUseCaseProvider = Provider<RemoveCartItemUseCase>((ref) {
   return RemoveCartItemUseCase(ref.watch(cartRepositoryProvider));
+});
+
+final mergeCartUseCaseProvider = Provider<MergeCartUseCase>((ref) {
+  return MergeCartUseCase(ref.watch(cartRepositoryProvider));
 });

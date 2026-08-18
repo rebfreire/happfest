@@ -63,6 +63,11 @@ class CartRepositoryImpl implements CartRepository {
     );
   }
 
+  @override
+  Future<Result<Cart>> mergeAnonymousCart() {
+    return _run(() => _dio.post<Map<String, dynamic>>('/cart/merge'));
+  }
+
   Future<Result<Cart>> _run(
     Future<Response<Map<String, dynamic>>> Function() request,
   ) async {

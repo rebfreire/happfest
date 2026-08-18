@@ -13,6 +13,7 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
   return AuthRepositoryImpl(
     ref.watch(authRemoteDataSourceProvider),
     ref.watch(tokenStorageProvider),
+    ref.watch(cartSessionStorageProvider),
   );
 });
 

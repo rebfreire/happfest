@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:happfest/core/error/failure.dart';
 import 'package:happfest/core/error/result.dart';
 import 'package:happfest/core/network/api_exception.dart';
+import 'package:happfest/core/storage/cart_session_storage.dart';
 import 'package:happfest/core/storage/token_storage.dart';
 import 'package:happfest/features/auth/data/datasources/auth_remote_datasource.dart';
 import 'package:happfest/features/auth/data/dto/login_request_dto.dart';
@@ -10,10 +11,15 @@ import 'package:happfest/features/auth/domain/entities/auth_session.dart';
 import 'package:happfest/features/auth/domain/repositories/auth_repository.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
-  const AuthRepositoryImpl(this._remoteDataSource, this._tokenStorage);
+  const AuthRepositoryImpl(
+    this._remoteDataSource,
+    this._tokenStorage,
+    this._cartSessionStorage,
+  );
 
   final AuthRemoteDataSource _remoteDataSource;
   final TokenStorage _tokenStorage;
+  final CartSessionStorage _cartSessionStorage;
 
   @override
   Future<Result<AuthSession>> login({
@@ -45,5 +51,10 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<void> logout() => _tokenStorage.clear();
+  Future<void> logout() async {
+    await _tokenStorage.clear();
+    // Nova sessão anônima de carrinho para o próximo uso do dispositivo,
+    // evitando associar o carrinho de quem acabou de deslogar a outra conta.
+    await _cartSessionStorage.clear();
+  }
 }

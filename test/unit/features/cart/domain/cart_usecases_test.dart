@@ -6,6 +6,7 @@ import 'package:happfest/features/cart/domain/entities/cart_item.dart';
 import 'package:happfest/features/cart/domain/repositories/cart_repository.dart';
 import 'package:happfest/features/cart/domain/usecases/add_cart_item_usecase.dart';
 import 'package:happfest/features/cart/domain/usecases/get_cart_usecase.dart';
+import 'package:happfest/features/cart/domain/usecases/merge_cart_usecase.dart';
 import 'package:happfest/features/cart/domain/usecases/remove_cart_item_usecase.dart';
 import 'package:happfest/features/cart/domain/usecases/update_cart_item_usecase.dart';
 import 'package:mocktail/mocktail.dart';
@@ -95,4 +96,18 @@ void main() {
 
     expect(result, isA<Err<Cart>>());
   });
+
+  test(
+    'MergeCartUseCase returns the merged cart from the repository',
+    () async {
+      when(
+        () => repository.mergeAnonymousCart(),
+      ).thenAnswer((_) async => const Ok(cart));
+
+      final result = await MergeCartUseCase(repository)();
+
+      expect(result, const Ok(cart));
+      verify(() => repository.mergeAnonymousCart()).called(1);
+    },
+  );
 }

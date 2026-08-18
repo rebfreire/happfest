@@ -43,6 +43,9 @@ class _FakeCartRepository implements CartRepository {
     );
     return Ok(cart);
   }
+
+  @override
+  Future<Result<Cart>> mergeAnonymousCart() async => Ok(cart);
 }
 
 Widget _wrap(Cart cart) {
