@@ -18,10 +18,14 @@ enum ProfileTypeDto {
 ///
 /// Note: a API não retorna um refresh token separado — `token` é trocado
 /// por um novo via `POST /auth/refresh?token=...`.
+///
+/// `token` é nullable apesar do contrato dizer `string` obrigatório: a API
+/// real já respondeu 200 com `token: null` em pelo menos um caso observado
+/// — ver `AuthRepositoryImpl.login` para como isso é tratado como falha.
 @freezed
 abstract class LoginResponseDto with _$LoginResponseDto {
   const factory LoginResponseDto({
-    required String token,
+    required String? token,
     required String userId,
     required ProfileTypeDto profileType,
     @Default([]) List<String> permissions,

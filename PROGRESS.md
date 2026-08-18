@@ -17,7 +17,7 @@ O app do fornecedor é um projeto separado, a ser iniciado depois.
 |---|---|---|
 | 0 | Setup (flavors, lints, CI, estrutura de pastas, Firebase) | ✅ Concluída |
 | 1 | Design System (tokens + catálogo de componentes) | ✅ Concluída |
-| 2 | Autenticação (login email/senha) | ✅ Implementada — ⚠️ ver pendência abaixo |
+| 2 | Autenticação (login email/senha) | ✅ App corrigido — ⚠️ bloqueado por bug no backend |
 | 3 | Home (busca, categorias, grid de produtos) | ✅ Concluída |
 | 4 | Detalhe do produto | ✅ Concluída |
 | 5 | Carrinho | ✅ Concluída |
@@ -32,16 +32,17 @@ Detalhes de cada feature em `docs/progress/`.
 
 - **Carrinho retorna "Algo deu errado"**: esperado enquanto o login estiver
   no bypass de debug — sem token real salvo, `POST /cart/items` volta 401 e
-  cai no `UnknownFailure` genérico. Só será resolvido quando o login real
-  estiver funcionando.
-- **Login real**: ao testar com credenciais reais no simulador iOS, o fluxo de
-  login não completou como esperado (precisa diagnóstico — pode ser erro de
-  API/credenciais ou bug em `AuthRepositoryImpl`/`LoginController`). Como
-  workaround temporário, existe um botão "Pular login (debug)" na
-  `LoginPage`, visível apenas em `kDebugMode`, que navega direto para `/`.
-  **Isso não deve ir para build de release** (já é bloqueado por
-  `kDebugMode`, mas o login real ainda precisa ser validado e o botão
-  removido quando resolvido).
+  cai no `UnknownFailure` genérico. Só será resolvido quando o backend
+  corrigir o login (ver abaixo).
+- **Login real bloqueado por bug no backend**: diagnosticado — a API responde
+  `200 OK` num login válido mas com `"token": null` no corpo (confirmado via
+  `curl` direto). O app foi corrigido para não travar mais nesse caso (antes
+  ficava preso em loading para sempre, sem erro — uma exceção de parse não
+  tratada; ver [`docs/progress/03-auth.md`](docs/progress/03-auth.md) para o
+  diagnóstico completo) e agora mostra um erro claro. Mas o login real
+  continua bloqueado até o backend corrigir o `token: null`. Enquanto isso, o
+  botão "Pular login (debug)" na `LoginPage` (visível só em `kDebugMode`)
+  continua necessário para testar o resto do app.
 - **iOS**: flavors (dev/staging/prod) ainda não configurados como schemes
   separados no Xcode — hoje só existe o scheme default (bundle id
   `br.com.comcode.happfest`), com os 3 ambientes apontando para a mesma API
@@ -59,7 +60,8 @@ fvm flutter run -d <device-id> --target=lib/main_dev.dart
 
 ## Próximos passos sugeridos
 
-1. Diagnosticar e corrigir o login real; remover o bypass de debug.
+1. Reportar o bug do `token: null` para quem mantém a API; quando corrigido,
+   validar o login real e remover o bypass de debug.
 2. Checkout (fluxo multi-step: Itens → Festa → Entrega → Resumo, conforme o
    site atual).
 3. Área de conta (endereços, festas, pedidos) — substituirá os placeholders

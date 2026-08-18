@@ -3,7 +3,9 @@ import 'package:happfest/features/auth/domain/entities/auth_session.dart';
 import 'package:happfest/features/auth/domain/entities/profile_type.dart';
 
 extension LoginResponseDtoMapper on LoginResponseDto {
-  AuthSession toEntity() {
+  /// [token] é passado à parte porque [LoginResponseDto.token] é nullable
+  /// — o chamador já validou que não é nulo antes de montar a entidade.
+  AuthSession toEntity(String token) {
     return AuthSession(
       token: token,
       userId: userId,

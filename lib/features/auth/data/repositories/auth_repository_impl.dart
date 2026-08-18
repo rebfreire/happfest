@@ -24,8 +24,17 @@ class AuthRepositoryImpl implements AuthRepository {
       final response = await _remoteDataSource.login(
         LoginRequestDto(email: email, senha: password),
       );
-      await _tokenStorage.saveToken(response.token);
-      return Ok(response.toEntity());
+      final token = response.token;
+      if (token == null) {
+        return const Err(
+          UnknownFailure(
+            'Não foi possível concluir o login (token não retornado pela '
+            'API). Tente novamente em alguns instantes.',
+          ),
+        );
+      }
+      await _tokenStorage.saveToken(token);
+      return Ok(response.toEntity(token));
     } on DioException catch (exception) {
       final error = exception.error;
       final failure = error is ApiException
