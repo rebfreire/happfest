@@ -38,33 +38,50 @@ void main() {
     );
   });
 
-  test('returns Ok and saves the token when the API returns one', () async {
-    when(
-      () => remoteDataSource.login(any()),
-    ).thenAnswer(
-      (_) async => const LoginResponseDto(
-        token: 'token-123',
-        userId: 'user-1',
-        profileType: ProfileTypeDto.customer,
-      ),
-    );
-    when(() => tokenStorage.saveToken(any())).thenAnswer((_) async {});
-
-    final result = await repository.login(email: 'a@b.com', password: '123');
-
-    expect(result, isA<Ok<dynamic>>());
-    verify(() => tokenStorage.saveToken('token-123')).called(1);
-  });
-
   test(
-    'returns Err instead of hanging when the API returns a null token '
-    '(observed in production: HTTP 200 with token: null)',
+    'returns Ok and saves both tokens when the API returns a complete response',
     () async {
       when(
         () => remoteDataSource.login(any()),
       ).thenAnswer(
         (_) async => const LoginResponseDto(
-          token: null,
+          accessToken: 'access-123',
+          refreshToken: 'refresh-123',
+          userId: 'user-1',
+          profileType: ProfileTypeDto.customer,
+        ),
+      );
+      when(
+        () => tokenStorage.saveTokens(
+          accessToken: any(named: 'accessToken'),
+          refreshToken: any(named: 'refreshToken'),
+        ),
+      ).thenAnswer((_) async {});
+
+      final result = await repository.login(
+        email: 'a@b.com',
+        password: '123',
+      );
+
+      expect(result, isA<Ok<dynamic>>());
+      verify(
+        () => tokenStorage.saveTokens(
+          accessToken: 'access-123',
+          refreshToken: 'refresh-123',
+        ),
+      ).called(1);
+    },
+  );
+
+  test(
+    'returns Err instead of hanging when the API omits a token '
+    '(observed in production with the old contract: HTTP 200 with token: null)',
+    () async {
+      when(
+        () => remoteDataSource.login(any()),
+      ).thenAnswer(
+        (_) async => const LoginResponseDto(
+          refreshToken: 'refresh-123',
           userId: 'user-1',
           profileType: ProfileTypeDto.customer,
         ),
@@ -77,20 +94,22 @@ void main() {
 
       expect(result, isA<Err<dynamic>>());
       expect((result as Err<dynamic>).failure, isA<UnknownFailure>());
-      verifyNever(() => tokenStorage.saveToken(any()));
+      verifyNever(
+        () => tokenStorage.saveTokens(
+          accessToken: any(named: 'accessToken'),
+          refreshToken: any(named: 'refreshToken'),
+        ),
+      );
     },
   );
 
-  test(
-    'logout clears both the auth token and the cart session id',
-    () async {
-      when(() => tokenStorage.clear()).thenAnswer((_) async {});
-      when(() => cartSessionStorage.clear()).thenAnswer((_) async {});
+  test('logout clears both the auth tokens and the cart session id', () async {
+    when(() => tokenStorage.clear()).thenAnswer((_) async {});
+    when(() => cartSessionStorage.clear()).thenAnswer((_) async {});
 
-      await repository.logout();
+    await repository.logout();
 
-      verify(() => tokenStorage.clear()).called(1);
-      verify(() => cartSessionStorage.clear()).called(1);
-    },
-  );
+    verify(() => tokenStorage.clear()).called(1);
+    verify(() => cartSessionStorage.clear()).called(1);
+  });
 }

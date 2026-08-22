@@ -20,7 +20,7 @@ void main() {
 
   test('returns Ok with the session on success', () async {
     const session = AuthSession(
-      token: 'token-123',
+      accessToken: 'token-123',
       userId: 'user-1',
       profileType: ProfileType.customer,
       permissions: [],

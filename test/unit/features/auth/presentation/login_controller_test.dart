@@ -80,7 +80,7 @@ void main() {
     'submit transitions to success on Ok result and merges the anonymous cart',
     () async {
       const session = AuthSession(
-        token: 't',
+        accessToken: 't',
         userId: 'u',
         profileType: ProfileType.customer,
         permissions: [],

@@ -117,7 +117,7 @@ void main() {
 
   testWidgets('navigates to home on successful login', (tester) async {
     const session = AuthSession(
-      token: 't',
+      accessToken: 't',
       userId: 'u',
       profileType: ProfileType.customer,
       permissions: [],

@@ -1,9 +1,15 @@
 import 'package:dio/dio.dart';
 import 'package:happfest/core/storage/token_storage.dart';
+import 'package:happfest/features/auth/data/dto/login_response_dto.dart';
 
-/// Injects the Bearer token on every request and refreshes it once on a 401,
-/// queuing concurrent requests behind a single in-flight refresh so we never
-/// fire multiple `/auth/refresh` calls at once.
+/// Injects the Bearer access token on every request and refreshes the
+/// access+refresh pair once on a 401, queuing concurrent requests behind a
+/// single in-flight refresh so we never fire multiple
+/// `/auth/mobile/refresh` calls at once.
+///
+/// Usa `_dio.post` direto em vez de `AuthRemoteDataSource` para evitar uma
+/// dependência circular no grafo de providers (`AuthRemoteDataSource`
+/// depende do mesmo `Dio` que carrega este interceptor).
 class AuthInterceptor extends Interceptor {
   AuthInterceptor(this._tokenStorage, this._dio);
 
@@ -17,9 +23,9 @@ class AuthInterceptor extends Interceptor {
     RequestOptions options,
     RequestInterceptorHandler handler,
   ) async {
-    final token = await _tokenStorage.readToken();
-    if (token != null) {
-      options.headers['Authorization'] = 'Bearer $token';
+    final accessToken = await _tokenStorage.readAccessToken();
+    if (accessToken != null) {
+      options.headers['Authorization'] = 'Bearer $accessToken';
     }
     handler.next(options);
   }
@@ -37,15 +43,15 @@ class AuthInterceptor extends Interceptor {
       return;
     }
 
-    final newToken = await _refreshToken();
-    if (newToken == null) {
+    final newAccessToken = await _refreshTokens();
+    if (newAccessToken == null) {
       await _tokenStorage.clear();
       handler.next(err);
       return;
     }
 
     final retryOptions = err.requestOptions
-      ..headers['Authorization'] = 'Bearer $newToken'
+      ..headers['Authorization'] = 'Bearer $newAccessToken'
       ..extra['retriedAfterRefresh'] = true;
     try {
       final response = await _dio.fetch<dynamic>(retryOptions);
@@ -55,22 +61,29 @@ class AuthInterceptor extends Interceptor {
     }
   }
 
-  Future<String?> _refreshToken() {
-    return _refreshing ??= _doRefresh().whenComplete(() => _refreshing = null);
+  Future<String?> _refreshTokens() {
+    return _refreshing ??= _doRefresh().whenComplete(() {
+      _refreshing = null;
+    });
   }
 
   Future<String?> _doRefresh() async {
-    final currentToken = await _tokenStorage.readToken();
-    if (currentToken == null) return null;
+    final currentRefreshToken = await _tokenStorage.readRefreshToken();
+    if (currentRefreshToken == null) return null;
     try {
       final response = await _dio.post<Map<String, dynamic>>(
-        '/auth/refresh',
-        queryParameters: {'token': currentToken},
+        '/auth/mobile/refresh',
+        data: {'refreshToken': currentRefreshToken},
       );
-      final newToken = response.data?['token'] as String?;
-      if (newToken == null) return null;
-      await _tokenStorage.saveToken(newToken);
-      return newToken;
+      final dto = LoginResponseDto.fromJson(response.data!);
+      final newAccessToken = dto.accessToken;
+      final newRefreshToken = dto.refreshToken;
+      if (newAccessToken == null || newRefreshToken == null) return null;
+      await _tokenStorage.saveTokens(
+        accessToken: newAccessToken,
+        refreshToken: newRefreshToken,
+      );
+      return newAccessToken;
     } on DioException {
       return null;
     }

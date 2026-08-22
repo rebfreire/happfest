@@ -14,20 +14,25 @@ enum ProfileTypeDto {
   admin,
 }
 
-/// Corresponde a `LoginResponse` em `docs/api/openapi.json`.
+/// Corresponde à resposta de `POST /auth/mobile/login` e
+/// `POST /auth/mobile/refresh` (contrato enviado pelo time da API em
+/// 2026-08-18, substitui o `POST /auth/login` antigo — ver
+/// `docs/progress/03-auth.md`).
 ///
-/// Note: a API não retorna um refresh token separado — `token` é trocado
-/// por um novo via `POST /auth/refresh?token=...`.
-///
-/// `token` é nullable apesar do contrato dizer `string` obrigatório: a API
-/// real já respondeu 200 com `token: null` em pelo menos um caso observado
-/// — ver `AuthRepositoryImpl.login` para como isso é tratado como falha.
+/// Nenhum campo é tratado como obrigatório aqui: o schema anterior
+/// (`LoginResponse`) já mandou `token: null` num 200 OK real, então mesmo
+/// campos "óbvios" como `accessToken` são nullable — a validação de
+/// presença fica em `AuthRepositoryImpl`.
 @freezed
 abstract class LoginResponseDto with _$LoginResponseDto {
   const factory LoginResponseDto({
-    required String? token,
-    required String userId,
-    required ProfileTypeDto profileType,
+    String? tokenType,
+    String? accessToken,
+    String? refreshToken,
+    int? expiresIn,
+    int? refreshExpiresIn,
+    String? userId,
+    ProfileTypeDto? profileType,
     @Default([]) List<String> permissions,
   }) = _LoginResponseDto;
 

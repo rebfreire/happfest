@@ -1,23 +1,35 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-/// Persists the auth token in the platform Keychain/EncryptedSharedPreferences.
-/// Never store tokens in SharedPreferences — see AGENTS.md seção 9.
+/// Persists the access + refresh tokens in the platform Keychain/
+/// EncryptedSharedPreferences. Never store tokens in SharedPreferences —
+/// see AGENTS.md seção 9.
 ///
-/// A API HappFest expõe um único token por login (`LoginResponse.token`);
-/// `POST /auth/refresh?token=...` troca esse token por um novo — não há um
-/// refresh token separado no contrato atual.
+/// A API HappFest usa o fluxo `POST /auth/mobile/login` /
+/// `POST /auth/mobile/refresh`: cada resposta traz um par
+/// `accessToken`/`refreshToken` que substitui o par anterior por completo.
 class TokenStorage {
   TokenStorage([FlutterSecureStorage? storage])
     : _storage = storage ?? const FlutterSecureStorage();
 
-  static const _tokenKey = 'happfest.token';
+  static const _accessTokenKey = 'happfest.access_token';
+  static const _refreshTokenKey = 'happfest.refresh_token';
 
   final FlutterSecureStorage _storage;
 
-  Future<String?> readToken() => _storage.read(key: _tokenKey);
+  Future<String?> readAccessToken() => _storage.read(key: _accessTokenKey);
 
-  Future<void> saveToken(String token) =>
-      _storage.write(key: _tokenKey, value: token);
+  Future<String?> readRefreshToken() => _storage.read(key: _refreshTokenKey);
 
-  Future<void> clear() => _storage.delete(key: _tokenKey);
+  Future<void> saveTokens({
+    required String accessToken,
+    required String refreshToken,
+  }) async {
+    await _storage.write(key: _accessTokenKey, value: accessToken);
+    await _storage.write(key: _refreshTokenKey, value: refreshToken);
+  }
+
+  Future<void> clear() async {
+    await _storage.delete(key: _accessTokenKey);
+    await _storage.delete(key: _refreshTokenKey);
+  }
 }
