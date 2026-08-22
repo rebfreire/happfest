@@ -17,46 +17,40 @@ O app do fornecedor é um projeto separado, a ser iniciado depois.
 |---|---|---|
 | 0 | Setup (flavors, lints, CI, estrutura de pastas, Firebase) | ✅ Concluída |
 | 1 | Design System (tokens + catálogo de componentes) | ✅ Concluída |
-| 2 | Autenticação (login email/senha) | ✅ App corrigido — ⚠️ bloqueado por bug no backend |
+| 2 | Autenticação (login mobile: access + refresh token) | ✅ Concluída — testada com login real |
 | 3 | Home (busca, categorias, grid de produtos) | ✅ Concluída |
 | 4 | Detalhe do produto | ✅ Concluída |
-| 5 | Carrinho | ✅ Concluída |
+| 5 | Carrinho (com merge do carrinho anônimo no login) | ✅ Concluída |
 | 5.5 | Shell do app (bottom nav) | ✅ Concluída |
 | 6 | Categorias (navegação em árvore + produtos) | ✅ Concluída |
-| 7 | Conta (perfil, endereços, pedidos — leitura) | ✅ Concluída |
-| 8 | Festas (listagem) | ✅ Concluída |
-| 9 | Checkout | ⏳ Não iniciado |
+| 7 | Conta (perfil, endereços CRUD, detalhe de pedido) | ✅ Concluída |
+| 8 | Festas (listar + criar) | ✅ Concluída |
+| 9 | Checkout (Itens → Festa → Entrega → Resumo) | ✅ Concluído — ⚠️ não validado ao vivo ainda |
 | 10 | Login social (Google) | ⏳ Não iniciado (fora da v1) |
 
 Detalhes de cada feature em `docs/progress/`.
 
 ## Pendências conhecidas
 
-- **Criação de endereço/festa não implementada**: `POST /customers/me/addresses`
-  e `POST /customers/{id}/parties` exigem `cityCodigoIbge`/`stateCodigoUf`
-  (códigos IBGE), e a API não expõe endpoint de busca desses códigos — falta
-  infraestrutura de seletor de cidade/UF. As telas de Conta e Festas hoje só
-  leem (listar endereços, pedidos e festas); criar/editar fica para depois.
+- **Checkout ainda não validado ao vivo**: código completo e coberto por
+  unit tests, mas o fluxo de ponta a ponta (preview → confirmar pedido →
+  link de pagamento) ainda não foi confirmado no simulador contra a API
+  real. Ver [`docs/progress/11-checkout.md`](docs/progress/11-checkout.md).
+- **Entrega por loja no checkout**: hoje toda loja herda a entrega da festa
+  selecionada; personalizar endereço/data por loja individualmente
+  (`SubOrderDeliveryRequest`) fica para depois.
+- **Editar endereço**: só criar/excluir/definir padrão têm UI — falta o
+  `PUT /customers/me/addresses/{id}`.
+- **Editar/arquivar festa**: a API não expõe esses endpoints — só
+  criar/listar são possíveis no contrato atual.
 - **Contrato da API (`docs/api/openapi.json`) não declara nenhum campo como
   `required` em nenhum schema de resposta** (nem no `LoginResponse`, que já
-  causou o bug do token nulo). Os DTOs novos (Conta, Festas, Categorias)
-  tratam só `id` como obrigatório e todo o resto como nullable/com default,
-  por segurança. Os DTOs mais antigos (produto, carrinho, categoria) ainda
-  não passaram por essa auditoria — funcionam bem com dados reais até agora,
-  mas vale revisar se aparecerem novos casos de tela travando sem erro.
-- **Carrinho retorna "Algo deu errado"**: esperado enquanto o login estiver
-  no bypass de debug — sem token real salvo, `POST /cart/items` volta 401 e
-  cai no `UnknownFailure` genérico. Só será resolvido quando o backend
-  corrigir o login (ver abaixo).
-- **Login real bloqueado por bug no backend**: diagnosticado — a API responde
-  `200 OK` num login válido mas com `"token": null` no corpo (confirmado via
-  `curl` direto). O app foi corrigido para não travar mais nesse caso (antes
-  ficava preso em loading para sempre, sem erro — uma exceção de parse não
-  tratada; ver [`docs/progress/03-auth.md`](docs/progress/03-auth.md) para o
-  diagnóstico completo) e agora mostra um erro claro. Mas o login real
-  continua bloqueado até o backend corrigir o `token: null`. Enquanto isso, o
-  botão "Pular login (debug)" na `LoginPage` (visível só em `kDebugMode`)
-  continua necessário para testar o resto do app.
+  causou o bug do token nulo no contrato antigo). Os DTOs das features mais
+  recentes (Conta, Festas, Categorias, Checkout) tratam só `id` como
+  obrigatório e todo o resto como nullable/com default, por segurança. Os
+  DTOs mais antigos (produto, carrinho, categoria) ainda não passaram por
+  essa auditoria — funcionam bem com dados reais até agora, mas vale
+  revisar se aparecerem novos casos de tela travando sem erro.
 - **iOS**: flavors (dev/staging/prod) ainda não configurados como schemes
   separados no Xcode — hoje só existe o scheme default (bundle id
   `br.com.comcode.happfest`), com os 3 ambientes apontando para a mesma API
@@ -64,6 +58,10 @@ Detalhes de cada feature em `docs/progress/`.
 - **Firebase**: integrado defensivamente no código (`bootstrap.dart`), mas
   `flutterfire configure` ainda não foi rodado — não há projeto Firebase real
   configurado ainda.
+- **Bypass de login (debug)**: botão "Pular login (debug)" ainda presente
+  na `LoginPage` (só em `kDebugMode`, não vai pra release). Como o login
+  real já funciona, pode ser removido quando quiser — mantido por
+  enquanto para agilizar testes sem precisar digitar credenciais toda hora.
 
 ## Como rodar
 
@@ -74,14 +72,9 @@ fvm flutter run -d <device-id> --target=lib/main_dev.dart
 
 ## Próximos passos sugeridos
 
-1. Reportar o bug do `token: null` para quem mantém a API; quando corrigido,
-   validar o login real e remover o bypass de debug.
-2. Checkout (fluxo multi-step: Itens → Festa → Entrega → Resumo, conforme o
-   site atual).
-3. Criação/edição de endereço e festa — depende de uma solução para o
-   seletor de cidade/UF (código IBGE).
+1. Validar o Checkout de ponta a ponta no simulador (preview, confirmação,
+   link de pagamento).
+2. Entrega por loja no checkout (override de endereço/data individual).
+3. Editar endereço.
 4. Configurar flavors no Xcode e `flutterfire configure`.
-5. Validar visualmente as abas Categorias/Festas/Perfil no simulador — a
-   automação de tap esbarrou de novo na flakiness já documentada na tela de
-   login; a lógica está coberta por 49 testes automatizados, mas a
-   verificação visual ficou pendente.
+5. Remover o bypass de debug quando o time estiver confiante no login real.

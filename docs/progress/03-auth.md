@@ -1,68 +1,60 @@
 # Autenticação (Login)
 
-Status: ✅ App corrigido · ⚠️ Bloqueado por bug no backend (ver abaixo) ·
-Commit: `b9e4ce0` (implementação inicial)
+Status: ✅ Concluído — testado com login real de ponta a ponta ·
+Commit: `b9e4ce0` (implementação inicial), `d87fecb` (migração pro contrato mobile)
 
 ## Escopo
 
-Login apenas por email/senha (`POST /auth/login`) na v1. Login social
-(Google, `/auth/google`) fica para depois.
+Login apenas por email/senha na v1. Login social (Google, `/auth/google`)
+fica para depois.
 
-## Arquitetura
+## Histórico
 
-- `domain/`: `AuthSession`, `ProfileType`, `AuthRepository` (interface),
-  `LoginUseCase`.
-- `data/`: `LoginRequestDto`/`LoginResponseDto`, `AuthRemoteDatasource`
-  (dio), `AuthSessionMapper`, `AuthRepositoryImpl`.
-- `presentation/`: `LoginController` (`Notifier<LoginState>` — estados
-  `idle`/`loading`/`success`/`failure`), `LoginPage`.
-- Token: `TokenStorage` (`flutter_secure_storage`) guarda um único token
-  (a API não usa par access+refresh separado).
-- `AuthInterceptor` (dio) injeta o Bearer e faz refresh single-flight via
-  `POST /auth/refresh?token=...` quando necessário.
+1. **Implementação inicial** contra `POST /auth/login` (token único).
+2. **Bug do token nulo** (2026-08-18): a API respondia `200 OK` com
+   `"token": null` em login válido; o DTO tratava o campo como obrigatório,
+   o parse explodia com uma exceção que não era `DioException`, e a tela
+   ficava presa em loading pra sempre sem erro. Corrigido tornando o campo
+   nullable e retornando `Err(UnknownFailure(...))` quando vier nulo — mas
+   a causa raiz (por que vinha nulo) era do backend, não do app.
+3. **Contrato novo enviado pelo time da API** (2026-08-18, mesmo dia):
+   `POST /auth/mobile/login` / `POST /auth/mobile/refresh` substituem o
+   `/auth/login` antigo — resolve o bug do token nulo por completo, trocando
+   para um par `accessToken`/`refreshToken` explícito.
 
-## Diagnóstico (2026-08-18)
+## Arquitetura (contrato atual)
 
-Login com credenciais reais deixava a tela travada em loading para sempre,
-sem erro nenhum aparecer. Root cause encontrado instrumentando o app com
-`log stream` do simulador (o `flutter run` estava perdendo a conexão de
-debug repetidamente, então os logs normais via `dart:developer` não
-apareciam):
+- `domain/`: `AuthSession` (campo `accessToken`), `ProfileType`,
+  `AuthRepository`, `LoginUseCase`.
+- `data/`: `LoginRequestDto` (`email`/`senha`) / `LoginResponseDto`
+  (`accessToken`/`refreshToken`/`userId`/`profileType`/`permissions`, tudo
+  nullable — ver nota de nullability abaixo), `AuthRemoteDatasource`
+  (`POST /auth/mobile/login`), `AuthSessionMapper`, `AuthRepositoryImpl`.
+- `TokenStorage` (`flutter_secure_storage`) guarda o par
+  `accessToken`/`refreshToken` — a API sempre substitui os dois juntos.
+- `AuthInterceptor` (dio): injeta `Authorization: Bearer <accessToken>` em
+  toda chamada; num 401, renova via `POST /auth/mobile/refresh` (com
+  `refreshToken` no body, não query param) — single-flight, então chamadas
+  concorrentes esperam a mesma renovação em vez de disparar refreshes
+  duplicados.
+- O endpoint mobile sempre cria a sessão no contexto de **comprador**,
+  mesmo para contas de fornecedor/franqueado/admin — por isso o mapper usa
+  `profileType ?? ProfileTypeDto.customer` como fallback.
 
-- A API responde `200 OK` no login bem-sucedido, mas com **`"token": null`**
-  no corpo (confirmado via `curl` direto, fora do app: `{"token":null,
-  "userId":"...","profileType":"CUSTOMER","permissions":[]}`).
-- `LoginResponseDto.token` era tipado como `String` obrigatório
-  (não-nullable). O `json_serializable` gerado lança uma exceção ao tentar
-  fazer parse de `null` nesse campo — uma exceção que **não é
-  `DioException`**, então o `catch (DioException)` em `AuthRepositoryImpl`
-  não pegava. A exceção subia sem tratamento, o `state = switch(...)` do
-  `LoginController.submit()` nunca era alcançado, e o `state` ficava preso
-  em `LoginState.loading()` para sempre — daí o "travamento" sem log de
-  erro.
+## Nota de nullability
 
-**Corrigido no app** ([`login_response_dto.dart`](../../lib/features/auth/data/dto/login_response_dto.dart),
-[`auth_repository_impl.dart`](../../lib/features/auth/data/repositories/auth_repository_impl.dart)):
-`token` agora é nullable no DTO; quando vem `null`, `AuthRepositoryImpl`
-retorna `Err(UnknownFailure(...))` com mensagem clara em vez de travar.
-Teste de regressão em
-[`auth_repository_impl_test.dart`](../../test/unit/features/auth/data/auth_repository_impl_test.dart).
+Nenhum schema de resposta da API declara campos `required` — nem o
+`LoginResponse` antigo, que foi exatamente o que causou o bug do token
+nulo. `LoginResponseDto` trata todos os campos como nullable;
+`AuthRepositoryImpl.login()` valida explicitamente que
+`accessToken`/`refreshToken`/`userId` não são nulos antes de prosseguir,
+retornando `Err(UnknownFailure(...))` com mensagem clara em vez de deixar
+uma exceção de parse travar a tela.
 
-## Pendência ativa (bloqueio de backend, fora do escopo do app)
+## Validado
 
-A causa raiz de por que a API retorna `token: null` num login bem-sucedido
-para essa conta específica **não é um bug do app** — precisa ser investigada
-por quem mantém a API (`POST /auth/login`). Possíveis causas: conta com
-verificação de e-mail pendente, tipo de perfil sem permissão de app mobile,
-ou bug genuíno no endpoint. Até isso ser corrigido, nenhuma conta consegue
-completar login de verdade pelo app.
-
-**Workaround mantido**: botão "Pular login (debug)" em
-[`login_page.dart`](../../lib/features/auth/presentation/pages/login_page.dart),
-visível apenas em `kDebugMode`, navega direto para `/` sem autenticar —
-continua necessário até o backend corrigir o token nulo.
-
-## Próximo passo
-
-Reportar o payload acima para quem mantém a API. Depois disso, remover o
-bypass de debug e validar o fluxo completo.
+Login real testado no simulador com credenciais reais: autenticação,
+carrinho anônimo mesclado na conta após login, endereços/pedidos reais
+carregando no Perfil. Bypass de debug ("Pular login") continua disponível
+(só em `kDebugMode`) para acelerar testes sem digitar credenciais toda
+hora — não é mais necessário para login funcionar, é conveniência.

@@ -1,24 +1,29 @@
 # Festas
 
-Status: ✅ Concluído (leitura) · ⚠️ Criação não implementada
+Status: ✅ Concluído
 
 ## Arquitetura
 
-- `feature/parties`: DTO `PartyResponseDto`, domain `Party`/`PartyStatus`,
-  `PartyRepository.getParties(customerId)`.
+- `feature/parties`: DTOs `PartyResponseDto`/`PartyRequestDto`, domain
+  `Party`/`PartyStatus`, `PartyRepository.getParties(customerId)` /
+  `.createParty(...)`.
 - [`PartiesPage`](../../lib/features/parties/presentation/pages/parties_page.dart)
-  (rota `/festas`): lista as festas do cliente logado (nome, período,
-  cidade/UF, nº de convidados, badge "ARQUIVADA" quando aplicável).
+  (rota `/festas`): lista as festas do cliente logado, FAB para cadastrar
+  uma nova.
+- [`NewPartyPage`](../../lib/features/parties/presentation/pages/new_party_page.dart)
+  (rota `/festas/novo`): usa
+  [`CepAddressFields`](../../lib/core/location/cep_address_fields.dart)
+  (mesmo componente do endereço) + seleção de datas de início/fim + número
+  de convidados.
 - `partiesProvider` depende do `customerId` obtido via
   `accountContextProvider` (feature de Conta) — a API exige o id do
-  customer na URL (`GET /customers/{customerId}/parties`).
+  customer na URL.
 
 ## Endpoints usados
 
-`GET /customers/{customerId}/parties`.
+`GET/POST /customers/{customerId}/parties`.
 
 ## Pendência
 
-Criar festa (`POST /customers/{customerId}/parties`) exige
-`cityCodigoIbge`/`stateCodigoUf`, mesma limitação documentada em
-`docs/progress/09-conta.md` — sem seletor de cidade/UF, fica para depois.
+A API não expõe `PUT`/`DELETE` para festas — só criar e listar são
+possíveis nesse contrato; editar/arquivar uma festa não tem endpoint.

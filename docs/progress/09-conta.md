@@ -1,28 +1,39 @@
 # Conta (Perfil)
 
-Status: ✅ Concluído (leitura) · ⚠️ Criação/edição não implementada
+Status: ✅ Concluído
 
 ## Arquitetura
 
 - `feature/account`: DTOs `CustomerContextResponseDto`,
-  `CustomerAddressResponseDto`, `OrderSummaryResponseDto` (subconjunto de
-  `OrderResponse` — só os campos usados na lista). Domain: `CustomerAccount`,
-  `CustomerAddress`, `OrderSummary`, `AccountRepository`.
+  `CustomerAddressResponseDto`/`CustomerAddressRequestDto`,
+  `OrderSummaryResponseDto` (lista) e `OrderDetailResponseDto`/
+  `SubOrderResponseDto`/`SubOrderItemResponseDto` (detalhe). Domain:
+  `CustomerAccount`, `CustomerAddress`, `OrderSummary`, `OrderDetail`,
+  `AccountRepository`.
 - [`AccountPage`](../../lib/features/account/presentation/pages/account_page.dart)
-  (rota `/perfil`): dados do cliente (nome/email/telefone), lista de
-  endereços, lista de pedidos, botão "Sair" (logout → `/login`).
-  Pull-to-refresh recarrega os três.
+  (rota `/perfil`): dados do cliente, endereços (criar via
+  `/perfil/enderecos/novo`, excluir e definir como padrão por um menu por
+  item), pedidos (toca para abrir o detalhe), botão "Sair". Pull-to-refresh
+  recarrega tudo.
+- [`OrderDetailPage`](../../lib/features/account/presentation/pages/order_detail_page.dart)
+  (rota `/pedidos/:id`): breakdown por sub-pedido (loja), status, itens e
+  subtotal.
+- [`NewAddressPage`](../../lib/features/account/presentation/pages/new_address_page.dart):
+  usa [`CepAddressFields`](../../lib/core/location/cep_address_fields.dart)
+  — CEP resolve rua/bairro/cidade/UF automaticamente via ViaCEP; sem
+  precisar escolher cidade manualmente no caminho feliz.
 
 ## Endpoints usados
 
-`GET /customers/me/context`, `GET /customers/me/addresses`, `GET /orders`.
+`GET /customers/me/context`, `GET/POST /customers/me/addresses`,
+`DELETE /customers/me/addresses/{id}`,
+`PATCH /customers/me/addresses/{id}/default`, `GET /orders`,
+`GET /orders/{id}`.
 
 ## Pendência
 
-Criar/editar endereço (`POST/PUT /customers/me/addresses`) fica de fora
-porque a API exige `cityCodigoIbge`/`stateCodigoUf` e não expõe endpoint de
-busca desses códigos — falta um seletor de cidade/UF. Assim que essa peça
-existir (própria ou via API externa do IBGE), dá para completar o CRUD.
+Editar endereço (`PUT /customers/me/addresses/{id}`) ainda não tem UI —
+só criar/excluir/definir padrão.
 
 ## Nota sobre nullability dos DTOs
 
