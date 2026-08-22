@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:happfest/core/error/failure.dart';
 import 'package:happfest/core/error/result.dart';
 import 'package:happfest/design_system/components/app_badge.dart';
@@ -23,6 +24,10 @@ class PartiesPage extends ConsumerWidget {
     return AppScaffold(
       title: 'Festas',
       onRefresh: () async => ref.invalidate(partiesProvider),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => context.push('/festas/novo'),
+        child: const Icon(Icons.add),
+      ),
       body: partiesAsync.when(
         loading: () => const AppLoading.skeleton(),
         error: (error, stackTrace) => AppErrorState(

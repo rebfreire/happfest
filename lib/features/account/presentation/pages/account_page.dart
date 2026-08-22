@@ -49,11 +49,20 @@ class AccountPage extends ConsumerWidget {
             children: [
               _AccountHeader(account: value),
               const SizedBox(height: AppSpacing.lg),
-              Text(
-                'Endereços',
-                style: Theme.of(context).textTheme.titleMedium,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Endereços',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  TextButton.icon(
+                    onPressed: () => context.push('/perfil/enderecos/novo'),
+                    icon: const Icon(Icons.add, size: 18),
+                    label: const Text('Adicionar'),
+                  ),
+                ],
               ),
-              const SizedBox(height: AppSpacing.sm),
               const _AddressesSection(),
               const SizedBox(height: AppSpacing.lg),
               Text(
@@ -180,11 +189,13 @@ class _OrdersSection extends ConsumerWidget {
             for (final order in value.content)
               AppCard(
                 padding: EdgeInsets.zero,
+                onTap: () => context.push('/pedidos/${order.id}'),
                 child: AppListTile(
                   title: currency.format(order.totalAmount),
                   subtitle: order.createdAt != null
                       ? DateFormat('dd/MM/yyyy').format(order.createdAt!)
                       : null,
+                  trailing: const Icon(Icons.chevron_right),
                 ),
               ),
           ],
