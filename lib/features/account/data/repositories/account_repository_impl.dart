@@ -112,6 +112,29 @@ class AccountRepositoryImpl implements AccountRepository {
   }
 
   @override
+  Future<Result<void>> deleteAddress(String id) async {
+    try {
+      await _dio.delete<void>('/customers/me/addresses/$id');
+      return const Ok(null);
+    } on DioException catch (exception) {
+      return Err(_failureOf(exception));
+    }
+  }
+
+  @override
+  Future<Result<CustomerAddress>> setDefaultAddress(String id) async {
+    try {
+      final response = await _dio.patch<Map<String, dynamic>>(
+        '/customers/me/addresses/$id/default',
+      );
+      final dto = CustomerAddressResponseDto.fromJson(response.data!);
+      return Ok(dto.toEntity());
+    } on DioException catch (exception) {
+      return Err(_failureOf(exception));
+    }
+  }
+
+  @override
   Future<Result<OrderDetail>> getOrder(String id) async {
     try {
       final response = await _dio.get<Map<String, dynamic>>('/orders/$id');

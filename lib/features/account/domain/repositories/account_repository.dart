@@ -27,4 +27,8 @@ abstract interface class AccountRepository {
     required String zipCode,
     String? complement,
   });
+
+  Future<Result<void>> deleteAddress(String id);
+
+  Future<Result<CustomerAddress>> setDefaultAddress(String id);
 }

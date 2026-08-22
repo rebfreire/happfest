@@ -8,10 +8,12 @@ import 'package:happfest/features/account/domain/entities/order_detail.dart';
 import 'package:happfest/features/account/domain/entities/order_summary.dart';
 import 'package:happfest/features/account/domain/repositories/account_repository.dart';
 import 'package:happfest/features/account/domain/usecases/create_address_usecase.dart';
+import 'package:happfest/features/account/domain/usecases/delete_address_usecase.dart';
 import 'package:happfest/features/account/domain/usecases/get_account_context_usecase.dart';
 import 'package:happfest/features/account/domain/usecases/get_addresses_usecase.dart';
 import 'package:happfest/features/account/domain/usecases/get_order_usecase.dart';
 import 'package:happfest/features/account/domain/usecases/get_orders_usecase.dart';
+import 'package:happfest/features/account/domain/usecases/set_default_address_usecase.dart';
 import 'package:mocktail/mocktail.dart';
 
 class _MockAccountRepository extends Mock implements AccountRepository {}
@@ -134,4 +136,41 @@ void main() {
     expect(result, const Ok(order));
     verify(() => repository.getOrder('o1')).called(1);
   });
+
+  test(
+    'DeleteAddressUseCase forwards the id and propagates failures',
+    () async {
+      when(
+        () => repository.deleteAddress('a1'),
+      ).thenAnswer((_) async => const Err(ForbiddenFailure()));
+
+      final result = await DeleteAddressUseCase(repository)('a1');
+
+      expect(result, isA<Err<void>>());
+      verify(() => repository.deleteAddress('a1')).called(1);
+    },
+  );
+
+  test(
+    'SetDefaultAddressUseCase returns the updated address from the repository',
+    () async {
+      const updated = CustomerAddress(
+        id: 'a1',
+        label: 'Casa',
+        street: 'Rua 1',
+        number: '10',
+        neighborhood: 'Centro',
+        zipCode: '01001000',
+        isDefault: true,
+      );
+      when(
+        () => repository.setDefaultAddress('a1'),
+      ).thenAnswer((_) async => const Ok(updated));
+
+      final result = await SetDefaultAddressUseCase(repository)('a1');
+
+      expect(result, const Ok(updated));
+      verify(() => repository.setDefaultAddress('a1')).called(1);
+    },
+  );
 }
