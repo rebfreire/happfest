@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:happfest/core/error/failure.dart';
 import 'package:happfest/core/error/result.dart';
+import 'package:happfest/design_system/components/app_button.dart';
 import 'package:happfest/design_system/feedback/app_dialog.dart';
 import 'package:happfest/design_system/feedback/app_empty_state.dart';
 import 'package:happfest/design_system/feedback/app_error_state.dart';
@@ -109,16 +111,26 @@ class _CartPageState extends ConsumerState<CartPage> {
                 top: false,
                 child: Padding(
                   padding: const EdgeInsets.all(AppSpacing.md),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  child: Column(
                     children: [
-                      Text(
-                        'Subtotal',
-                        style: Theme.of(context).textTheme.titleMedium,
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Subtotal',
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                          Text(
+                            currency.format(value.subtotal),
+                            style: Theme.of(context).textTheme.titleLarge,
+                          ),
+                        ],
                       ),
-                      Text(
-                        currency.format(value.subtotal),
-                        style: Theme.of(context).textTheme.titleLarge,
+                      const SizedBox(height: AppSpacing.sm),
+                      AppButton.confirm(
+                        label: 'Finalizar compra',
+                        expanded: true,
+                        onPressed: () => context.push('/checkout'),
                       ),
                     ],
                   ),
