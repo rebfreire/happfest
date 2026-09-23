@@ -20,6 +20,12 @@ class NotFoundFailure extends Failure {
   const NotFoundFailure([super.message = 'Não encontrado.']);
 }
 
+class ConflictFailure extends Failure {
+  const ConflictFailure([
+    super.message = 'Esse horário não está mais disponível.',
+  ]);
+}
+
 class ValidationFailure extends Failure {
   const ValidationFailure(this.fields, [super.message = 'Dados inválidos.']);
 

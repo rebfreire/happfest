@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:happfest/features/checkout/data/dto/payment_action_response_dto.dart';
 
 part 'payment_response_dto.freezed.dart';
 part 'payment_response_dto.g.dart';
@@ -16,6 +17,8 @@ enum PaymentStatusDto {
   partiallyRefunded,
   @JsonValue('REFUNDED')
   refunded,
+  @JsonValue('CHARGEBACK')
+  chargeback,
 }
 
 /// Corresponde a `PaymentResponse` em `docs/api/openapi.json`. O
@@ -25,10 +28,13 @@ enum PaymentStatusDto {
 abstract class PaymentResponseDto with _$PaymentResponseDto {
   const factory PaymentResponseDto({
     required String id,
+    String? orderId,
     PaymentStatusDto? status,
     @Default(0) double amount,
     String? paymentLink,
     String? failureReason,
+    PaymentActionResponseDto? action,
+    String? expiresAt,
   }) = _PaymentResponseDto;
 
   factory PaymentResponseDto.fromJson(Map<String, dynamic> json) =>

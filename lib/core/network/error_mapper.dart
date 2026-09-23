@@ -43,6 +43,11 @@ Failure _mapStatusCode(int? statusCode, DioException exception) {
         ? NotFoundFailure(apiMessage)
         : const NotFoundFailure();
   }
+  if (statusCode == 409) {
+    return apiMessage != null
+        ? ConflictFailure(apiMessage)
+        : const ConflictFailure();
+  }
   if (statusCode == 422) {
     final fields = _extractFieldErrors(data);
     return apiMessage != null

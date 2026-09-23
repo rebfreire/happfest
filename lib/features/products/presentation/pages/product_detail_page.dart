@@ -14,6 +14,8 @@ import 'package:happfest/features/products/domain/entities/product_detail.dart';
 import 'package:happfest/features/products/domain/entities/product_type.dart';
 import 'package:happfest/features/products/presentation/controllers/product_detail_providers.dart';
 import 'package:happfest/features/products/presentation/widgets/product_image_gallery.dart';
+import 'package:happfest/features/service_availability/presentation/controllers/service_availability_providers.dart';
+import 'package:happfest/features/service_availability/presentation/widgets/service_availability_picker.dart';
 import 'package:intl/intl.dart';
 
 class ProductDetailPage extends ConsumerWidget {
@@ -62,6 +64,38 @@ class _ProductDetailContent extends ConsumerStatefulWidget {
 
 class _ProductDetailContentState extends ConsumerState<_ProductDetailContent> {
   var _isAddingToCart = false;
+  var _quantity = 1;
+  late double _pricingUnitQuantity = widget.detail.pricingUnitMin ?? 1;
+  DateTime? _selectedDate;
+  String? _selectedTime;
+
+  bool get _isService => widget.detail.productType == ProductType.service;
+
+  ServiceAvailabilityQuery get _availabilityQuery => (
+    productId: widget.detail.id,
+    quantity: _quantity,
+    pricingUnitQuantity: _pricingUnitQuantity,
+  );
+
+  void _changeQuantity(int delta) {
+    final next = _quantity + delta;
+    if (next < 1) return;
+    setState(() {
+      _quantity = next;
+      _selectedDate = null;
+      _selectedTime = null;
+    });
+  }
+
+  void _changeDuration(double delta) {
+    final next = _pricingUnitQuantity + delta;
+    if (next < 0.001) return;
+    setState(() {
+      _pricingUnitQuantity = next;
+      _selectedDate = null;
+      _selectedTime = null;
+    });
+  }
 
   Future<void> _addToCart() async {
     final detail = widget.detail;
@@ -71,12 +105,43 @@ class _ProductDetailContentState extends ConsumerState<_ProductDetailContent> {
       return;
     }
 
+    if (_isService) {
+      final availabilityAsync = ref.read(
+        serviceAvailabilityProvider(_availabilityQuery),
+      );
+      final availabilityResult = availabilityAsync.value;
+      final availability = switch (availabilityResult) {
+        Ok(:final value) => value,
+        _ => null,
+      };
+      if (availability == null || !availability.hasAvailability) {
+        AppSnackbar.error(
+          context,
+          'Não há datas disponíveis para esse serviço no momento.',
+        );
+        return;
+      }
+      if (_selectedDate == null) {
+        AppSnackbar.error(context, 'Escolha uma data para continuar.');
+        return;
+      }
+      if (availability.timeSelectionRequired && _selectedTime == null) {
+        AppSnackbar.error(context, 'Escolha um horário para continuar.');
+        return;
+      }
+    }
+
     setState(() => _isAddingToCart = true);
     final result = await ref
         .read(addCartItemUseCaseProvider)
         .call(
           productVariantId: variantId,
-          pricingUnitQuantity: detail.pricingUnitMin ?? 1,
+          pricingUnitQuantity: _pricingUnitQuantity,
+          quantity: _quantity,
+          preferredDate: _isService && _selectedDate != null
+              ? DateFormat('yyyy-MM-dd').format(_selectedDate!)
+              : null,
+          preferredTime: _isService ? _selectedTime : null,
         );
     if (!mounted) return;
     setState(() => _isAddingToCart = false);
@@ -86,6 +151,13 @@ class _ProductDetailContentState extends ConsumerState<_ProductDetailContent> {
         ref.invalidate(cartProvider);
         AppSnackbar.success(context, 'Adicionado ao carrinho.');
       case Err(:final failure):
+        if (failure is ConflictFailure && _isService) {
+          ref.invalidate(serviceAvailabilityProvider(_availabilityQuery));
+          setState(() {
+            _selectedDate = null;
+            _selectedTime = null;
+          });
+        }
         AppSnackbar.error(context, failure.message);
     }
   }
@@ -98,6 +170,14 @@ class _ProductDetailContentState extends ConsumerState<_ProductDetailContent> {
     final hasPriceRange =
         detail.pricingUnitMax != null &&
         detail.pricingUnitMax != detail.pricingUnitMin;
+
+    final availabilityAsync = _isService
+        ? ref.watch(serviceAvailabilityProvider(_availabilityQuery))
+        : null;
+
+    final canAddToCart =
+        !_isAddingToCart &&
+        (!_isService || availabilityAsync?.value is Ok);
 
     return Column(
       children: [
@@ -120,9 +200,7 @@ class _ProductDetailContentState extends ConsumerState<_ProductDetailContent> {
                           ),
                         ),
                         AppBadge(
-                          label: detail.productType == ProductType.service
-                              ? 'SERVIÇO'
-                              : 'PRODUTO',
+                          label: _isService ? 'SERVIÇO' : 'PRODUTO',
                         ),
                       ],
                     ),
@@ -157,6 +235,81 @@ class _ProductDetailContentState extends ConsumerState<_ProductDetailContent> {
                       const SizedBox(height: AppSpacing.sm),
                       Text(detail.description!),
                     ],
+                    const SizedBox(height: AppSpacing.lg),
+                    Row(
+                      children: [
+                        Text(
+                          'Quantidade',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        const Spacer(),
+                        IconButton(
+                          onPressed: () => _changeQuantity(-1),
+                          icon: const Icon(Icons.remove_circle_outline),
+                        ),
+                        Text('$_quantity'),
+                        IconButton(
+                          onPressed: () => _changeQuantity(1),
+                          icon: const Icon(Icons.add_circle_outline),
+                        ),
+                      ],
+                    ),
+                    if (_isService) ...[
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              detail.pricingUnitLabel != null
+                                  ? 'Duração (${detail.pricingUnitLabel})'
+                                  : 'Duração',
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                          ),
+                          IconButton(
+                            onPressed: () => _changeDuration(-1),
+                            icon: const Icon(Icons.remove_circle_outline),
+                          ),
+                          Text(
+                            _pricingUnitQuantity % 1 == 0
+                                ? _pricingUnitQuantity.toStringAsFixed(0)
+                                : _pricingUnitQuantity.toString(),
+                          ),
+                          IconButton(
+                            onPressed: () => _changeDuration(1),
+                            icon: const Icon(Icons.add_circle_outline),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      availabilityAsync!.when(
+                        loading: () => const AppLoading.skeleton(),
+                        error: (error, stackTrace) => AppErrorState(
+                          failure: const UnknownFailure(),
+                          onRetry: () => ref.invalidate(
+                            serviceAvailabilityProvider(_availabilityQuery),
+                          ),
+                        ),
+                        data: (result) => switch (result) {
+                          Ok(:final value) => ServiceAvailabilityPicker(
+                            availability: value,
+                            selectedDate: _selectedDate,
+                            onDateSelected: (date) => setState(() {
+                              _selectedDate = date;
+                              _selectedTime = null;
+                            }),
+                            selectedTime: _selectedTime,
+                            onTimeSelected: (time) =>
+                                setState(() => _selectedTime = time),
+                          ),
+                          Err(:final failure) => AppErrorState(
+                            failure: failure,
+                            onRetry: () => ref.invalidate(
+                              serviceAvailabilityProvider(_availabilityQuery),
+                            ),
+                          ),
+                        },
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -171,7 +324,7 @@ class _ProductDetailContentState extends ConsumerState<_ProductDetailContent> {
               label: 'Adicionar ao carrinho',
               expanded: true,
               isLoading: _isAddingToCart,
-              onPressed: _isAddingToCart ? null : _addToCart,
+              onPressed: canAddToCart ? _addToCart : null,
             ),
           ),
         ),

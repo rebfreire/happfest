@@ -69,6 +69,65 @@ void main() {
     ).called(1);
   });
 
+  test(
+    'AddCartItemUseCase forwards preferredDate/preferredTime for service '
+    'products',
+    () async {
+      when(
+        () => repository.addItem(
+          productVariantId: any(named: 'productVariantId'),
+          quantity: any(named: 'quantity'),
+          pricingUnitQuantity: any(named: 'pricingUnitQuantity'),
+          preferredDate: any(named: 'preferredDate'),
+          preferredTime: any(named: 'preferredTime'),
+        ),
+      ).thenAnswer((_) async => const Ok(cart));
+
+      await AddCartItemUseCase(repository)(
+        productVariantId: 'variant-1',
+        pricingUnitQuantity: 2,
+        preferredDate: '2026-10-15',
+        preferredTime: '14:30:00',
+      );
+
+      verify(
+        () => repository.addItem(
+          productVariantId: 'variant-1',
+          quantity: 1,
+          pricingUnitQuantity: 2,
+          preferredDate: '2026-10-15',
+          preferredTime: '14:30:00',
+        ),
+      ).called(1);
+    },
+  );
+
+  test(
+    'AddCartItemUseCase surfaces a conflict when the API rejects a '
+    'scheduling clash (409) at add-to-cart or checkout time',
+    () async {
+      when(
+        () => repository.addItem(
+          productVariantId: any(named: 'productVariantId'),
+          quantity: any(named: 'quantity'),
+          pricingUnitQuantity: any(named: 'pricingUnitQuantity'),
+          preferredDate: any(named: 'preferredDate'),
+          preferredTime: any(named: 'preferredTime'),
+        ),
+      ).thenAnswer((_) async => const Err(ConflictFailure()));
+
+      final result = await AddCartItemUseCase(repository)(
+        productVariantId: 'variant-1',
+        pricingUnitQuantity: 1,
+        preferredDate: '2026-10-15',
+        preferredTime: '14:30:00',
+      );
+
+      expect(result, isA<Err<Cart>>());
+      expect((result as Err<Cart>).failure, isA<ConflictFailure>());
+    },
+  );
+
   test('UpdateCartItemUseCase forwards the new quantities', () async {
     when(
       () => repository.updateItem(

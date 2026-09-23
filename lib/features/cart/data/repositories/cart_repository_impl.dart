@@ -24,11 +24,15 @@ class CartRepositoryImpl implements CartRepository {
     required String productVariantId,
     required int quantity,
     required double pricingUnitQuantity,
+    String? preferredDate,
+    String? preferredTime,
   }) {
     final request = CartItemRequestDto(
       productVariantId: productVariantId,
       quantity: quantity,
       pricingUnitQuantity: pricingUnitQuantity,
+      preferredDate: preferredDate,
+      preferredTime: preferredTime,
     );
     return _run(
       () => _dio.post<Map<String, dynamic>>(

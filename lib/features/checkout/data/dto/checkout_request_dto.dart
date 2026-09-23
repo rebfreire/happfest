@@ -11,6 +11,7 @@ abstract class CheckoutRequestDto with _$CheckoutRequestDto {
   const factory CheckoutRequestDto({
     required String partyId,
     required String paymentMethod,
+    double? useBalanceAmount,
   }) = _CheckoutRequestDto;
 
   factory CheckoutRequestDto.fromJson(Map<String, dynamic> json) =>

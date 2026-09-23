@@ -11,6 +11,9 @@ abstract class CheckoutResponseDto with _$CheckoutResponseDto {
   const factory CheckoutResponseDto({
     OrderResponseDto? order,
     PaymentResponseDto? payment,
+    String? paymentAttemptId,
+    String? paymentStatusUrl,
+    @Default(false) bool paymentProcessingAsync,
   }) = _CheckoutResponseDto;
 
   factory CheckoutResponseDto.fromJson(Map<String, dynamic> json) =>

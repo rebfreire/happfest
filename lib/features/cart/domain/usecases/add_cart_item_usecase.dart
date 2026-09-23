@@ -11,11 +11,15 @@ class AddCartItemUseCase {
     required String productVariantId,
     required double pricingUnitQuantity,
     int quantity = 1,
+    String? preferredDate,
+    String? preferredTime,
   }) {
     return _repository.addItem(
       productVariantId: productVariantId,
       quantity: quantity,
       pricingUnitQuantity: pricingUnitQuantity,
+      preferredDate: preferredDate,
+      preferredTime: preferredTime,
     );
   }
 }

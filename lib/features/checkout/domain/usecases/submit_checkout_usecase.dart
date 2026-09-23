@@ -11,10 +11,14 @@ class SubmitCheckoutUseCase {
   Future<Result<CheckoutResult>> call({
     required String partyId,
     required PaymentMethod paymentMethod,
+    required String idempotencyKey,
+    double? useBalanceAmount,
   }) {
     return _repository.checkout(
       partyId: partyId,
       paymentMethod: paymentMethod,
+      idempotencyKey: idempotencyKey,
+      useBalanceAmount: useBalanceAmount,
     );
   }
 }

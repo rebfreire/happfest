@@ -1,23 +1,16 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:happfest/features/checkout/domain/entities/payment.dart';
 
 part 'checkout_result.freezed.dart';
-
-enum PaymentStatus {
-  pending,
-  approved,
-  failed,
-  cancelled,
-  partiallyRefunded,
-  refunded,
-}
 
 @freezed
 abstract class CheckoutResult with _$CheckoutResult {
   const factory CheckoutResult({
     String? orderId,
     @Default(0) double orderTotal,
-    PaymentStatus? paymentStatus,
-    String? paymentLink,
-    String? failureReason,
+    Payment? payment,
+    String? paymentAttemptId,
+    String? paymentStatusUrl,
+    @Default(false) bool paymentProcessingAsync,
   }) = _CheckoutResult;
 }

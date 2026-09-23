@@ -1,10 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:happfest/core/utils/idempotency_key.dart';
 import 'package:happfest/features/parties/domain/entities/party.dart';
 
 enum CheckoutStep { itens, festa, entrega, resumo }
 
 class CheckoutFlowState {
   const CheckoutFlowState({
+    required this.idempotencyKey,
     this.step = CheckoutStep.itens,
     this.selectedParty,
   });
@@ -12,10 +14,20 @@ class CheckoutFlowState {
   final CheckoutStep step;
   final Party? selectedParty;
 
-  CheckoutFlowState copyWith({CheckoutStep? step, Party? selectedParty}) {
+  /// Chave estável reusada em retries técnicos da mesma tentativa de
+  /// checkout; regenerada quando a festa selecionada muda ou o fluxo é
+  /// reiniciado — ver `POST /orders/checkout` em `docs/api/openapi.json`.
+  final String idempotencyKey;
+
+  CheckoutFlowState copyWith({
+    CheckoutStep? step,
+    Party? selectedParty,
+    String? idempotencyKey,
+  }) {
     return CheckoutFlowState(
       step: step ?? this.step,
       selectedParty: selectedParty ?? this.selectedParty,
+      idempotencyKey: idempotencyKey ?? this.idempotencyKey,
     );
   }
 }
@@ -27,10 +39,15 @@ final checkoutFlowProvider =
 
 class CheckoutFlowController extends Notifier<CheckoutFlowState> {
   @override
-  CheckoutFlowState build() => const CheckoutFlowState();
+  CheckoutFlowState build() =>
+      CheckoutFlowState(idempotencyKey: generateIdempotencyKey());
 
   void selectParty(Party party) {
-    state = state.copyWith(selectedParty: party);
+    final changed = state.selectedParty?.id != party.id;
+    state = state.copyWith(
+      selectedParty: party,
+      idempotencyKey: changed ? generateIdempotencyKey() : null,
+    );
   }
 
   void goTo(CheckoutStep step) {
@@ -54,6 +71,6 @@ class CheckoutFlowController extends Notifier<CheckoutFlowState> {
   }
 
   void reset() {
-    state = const CheckoutFlowState();
+    state = CheckoutFlowState(idempotencyKey: generateIdempotencyKey());
   }
 }

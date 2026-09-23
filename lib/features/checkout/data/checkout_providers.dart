@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:happfest/app/di/providers.dart';
 import 'package:happfest/features/checkout/data/repositories/checkout_repository_impl.dart';
 import 'package:happfest/features/checkout/domain/repositories/checkout_repository.dart';
+import 'package:happfest/features/checkout/domain/usecases/get_payment_status_usecase.dart';
 import 'package:happfest/features/checkout/domain/usecases/preview_checkout_usecase.dart';
 import 'package:happfest/features/checkout/domain/usecases/submit_checkout_usecase.dart';
 
@@ -17,4 +18,10 @@ final previewCheckoutUseCaseProvider = Provider<PreviewCheckoutUseCase>((
 
 final submitCheckoutUseCaseProvider = Provider<SubmitCheckoutUseCase>((ref) {
   return SubmitCheckoutUseCase(ref.watch(checkoutRepositoryProvider));
+});
+
+final getPaymentStatusUseCaseProvider = Provider<GetPaymentStatusUseCase>((
+  ref,
+) {
+  return GetPaymentStatusUseCase(ref.watch(checkoutRepositoryProvider));
 });

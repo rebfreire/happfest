@@ -1,5 +1,6 @@
 import 'package:happfest/core/error/result.dart';
 import 'package:happfest/features/checkout/domain/entities/checkout_preview.dart';
+import 'package:happfest/features/checkout/domain/entities/payment_method.dart';
 import 'package:happfest/features/checkout/domain/repositories/checkout_repository.dart';
 
 class PreviewCheckoutUseCase {
@@ -7,7 +8,13 @@ class PreviewCheckoutUseCase {
 
   final CheckoutRepository _repository;
 
-  Future<Result<CheckoutPreview>> call({required String partyId}) {
-    return _repository.preview(partyId: partyId);
+  Future<Result<CheckoutPreview>> call({
+    required String partyId,
+    PaymentMethod? paymentMethod,
+  }) {
+    return _repository.preview(
+      partyId: partyId,
+      paymentMethod: paymentMethod,
+    );
   }
 }

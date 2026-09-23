@@ -30,10 +30,12 @@ class _CheckoutResumoStepState extends ConsumerState<CheckoutResumoStep> {
   var _isSubmitting = false;
 
   Future<void> _submit(String partyId) async {
+    final idempotencyKey = ref.read(checkoutFlowProvider).idempotencyKey;
     setState(() => _isSubmitting = true);
     final result = await ref.read(submitCheckoutUseCaseProvider)(
       partyId: partyId,
       paymentMethod: _paymentMethod,
+      idempotencyKey: idempotencyKey,
     );
     if (!mounted) return;
     setState(() => _isSubmitting = false);
@@ -45,6 +47,14 @@ class _CheckoutResumoStepState extends ConsumerState<CheckoutResumoStep> {
           ..read(checkoutFlowProvider.notifier).reset();
         context.go('/pedido/confirmacao', extra: value);
       case Err(:final failure):
+        if (failure is ConflictFailure) {
+          ref.invalidate(
+            checkoutPreviewProvider((
+              partyId: partyId,
+              paymentMethod: _paymentMethod,
+            )),
+          );
+        }
         AppSnackbar.error(context, failure.message);
     }
   }
@@ -58,14 +68,15 @@ class _CheckoutResumoStepState extends ConsumerState<CheckoutResumoStep> {
       );
     }
 
-    final previewAsync = ref.watch(checkoutPreviewProvider(party.id));
+    final query = (partyId: party.id, paymentMethod: _paymentMethod);
+    final previewAsync = ref.watch(checkoutPreviewProvider(query));
     final currency = NumberFormat.currency(locale: 'pt_BR', symbol: r'R$');
 
     return previewAsync.when(
       loading: () => const AppLoading.skeleton(),
       error: (error, stackTrace) => AppErrorState(
         failure: const UnknownFailure(),
-        onRetry: () => ref.invalidate(checkoutPreviewProvider(party.id)),
+        onRetry: () => ref.invalidate(checkoutPreviewProvider(query)),
       ),
       data: (result) => switch (result) {
         Ok(:final value) => _ResumoContent(
@@ -79,7 +90,7 @@ class _CheckoutResumoStepState extends ConsumerState<CheckoutResumoStep> {
         ),
         Err(:final failure) => AppErrorState(
           failure: failure,
-          onRetry: () => ref.invalidate(checkoutPreviewProvider(party.id)),
+          onRetry: () => ref.invalidate(checkoutPreviewProvider(query)),
         ),
       },
     );
@@ -105,6 +116,8 @@ class _ResumoContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final hasDiscount = preview.paymentDiscountAmount > 0;
+
     return Column(
       children: [
         Expanded(
@@ -142,6 +155,23 @@ class _ResumoContent extends StatelessWidget {
                 },
                 onChanged: onPaymentMethodChanged,
               ),
+              if (hasDiscount) ...[
+                const SizedBox(height: AppSpacing.sm),
+                Text(
+                  'Desconto de '
+                  '${currency.format(preview.paymentDiscountAmount)} nessa '
+                  'forma de pagamento',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
+              if (preview.balanceAvailable > 0) ...[
+                const SizedBox(height: AppSpacing.sm),
+                Text(
+                  'Saldo disponível: '
+                  '${currency.format(preview.balanceAvailable)}',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
             ],
           ),
         ),

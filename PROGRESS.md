@@ -1,6 +1,6 @@
 # HappFest — Progresso do App Flutter (Comprador)
 
-Última atualização: 2026-08-18
+Última atualização: 2026-09-23
 
 ## Visão geral
 
@@ -25,20 +25,28 @@ O app do fornecedor é um projeto separado, a ser iniciado depois.
 | 6 | Categorias (navegação em árvore + produtos) | ✅ Concluída |
 | 7 | Conta (perfil, endereços CRUD, detalhe de pedido) | ✅ Concluída |
 | 8 | Festas (listar + criar) | ✅ Concluída |
-| 9 | Checkout (Itens → Festa → Entrega → Resumo) | ✅ Concluído — ⚠️ não validado ao vivo ainda |
+| 9 | Checkout (Itens → Festa → Entrega → Resumo, assíncrono com polling + Pix/Boleto/Cartão) | ✅ Concluído — ⚠️ não validado ao vivo ainda |
 | 10 | Login social (Google) | ⏳ Não iniciado (fora da v1) |
+| 11 | Disponibilidade real de serviços agendáveis | ✅ Concluído — ⚠️ não validado ao vivo ainda |
 
 Detalhes de cada feature em `docs/progress/`.
 
 ## Pendências conhecidas
 
-- **Checkout ainda não validado ao vivo**: código completo e coberto por
-  unit tests, mas o fluxo de ponta a ponta (preview → confirmar pedido →
-  link de pagamento) ainda não foi confirmado no simulador contra a API
-  real. Ver [`docs/progress/11-checkout.md`](docs/progress/11-checkout.md).
+- **Checkout e disponibilidade de serviços ainda não validados ao vivo**:
+  código completo e coberto por unit/widget tests (disponibilidade,
+  conflito 409, idempotência, polling de pagamento, PIX/Boleto/Cartão),
+  mas o fluxo de ponta a ponta (agendar serviço → preview → confirmar
+  pedido → acompanhar pagamento) ainda não foi confirmado no simulador
+  contra a API real. Ver
+  [`docs/progress/11-checkout.md`](docs/progress/11-checkout.md) e
+  [`docs/progress/12-disponibilidade-servico.md`](docs/progress/12-disponibilidade-servico.md).
 - **Entrega por loja no checkout**: hoje toda loja herda a entrega da festa
   selecionada; personalizar endereço/data por loja individualmente
   (`SubOrderDeliveryRequest`) fica para depois.
+- **Checkout parcial e uso de saldo**: `cartItemIds` (checkout parcial) e
+  `useBalanceAmount` (usar saldo da carteira) existem no contrato mas não
+  têm UI — o checkout sempre finaliza o carrinho inteiro sem usar saldo.
 - **Editar endereço**: só criar/excluir/definir padrão têm UI — falta o
   `PUT /customers/me/addresses/{id}`.
 - **Editar/arquivar festa**: a API não expõe esses endpoints — só
@@ -72,9 +80,11 @@ fvm flutter run -d <device-id> --target=lib/main_dev.dart
 
 ## Próximos passos sugeridos
 
-1. Validar o Checkout de ponta a ponta no simulador (preview, confirmação,
-   link de pagamento).
+1. Validar ao vivo no simulador: agendar um serviço (disponibilidade real),
+   Checkout de ponta a ponta nos três métodos de pagamento (Pix, Boleto,
+   Cartão via checkout hospedado) e o polling até a confirmação.
 2. Entrega por loja no checkout (override de endereço/data individual).
-3. Editar endereço.
-4. Configurar flavors no Xcode e `flutterfire configure`.
-5. Remover o bypass de debug quando o time estiver confiante no login real.
+3. Checkout parcial e uso de saldo da carteira (`useBalanceAmount`).
+4. Editar endereço.
+5. Configurar flavors no Xcode e `flutterfire configure`.
+6. Remover o bypass de debug quando o time estiver confiante no login real.

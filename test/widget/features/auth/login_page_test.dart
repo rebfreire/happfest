@@ -47,6 +47,8 @@ class _FakeCartRepository implements CartRepository {
     required String productVariantId,
     required int quantity,
     required double pricingUnitQuantity,
+    String? preferredDate,
+    String? preferredTime,
   }) async => throw UnimplementedError();
 
   @override

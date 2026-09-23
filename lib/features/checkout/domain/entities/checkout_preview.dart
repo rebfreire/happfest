@@ -7,6 +7,10 @@ abstract class CheckoutPreview with _$CheckoutPreview {
   const factory CheckoutPreview({
     @Default([]) List<StorePreview> stores,
     @Default(0) double total,
+    @Default(0) double advertisedTotal,
+    @Default(0) double paymentDiscountAmount,
+    @Default(0) double balanceAvailable,
+    @Default(0) double maxBalanceUsable,
   }) = _CheckoutPreview;
 }
 

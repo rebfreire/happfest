@@ -10,6 +10,8 @@ abstract class CheckoutPreviewResponseDto with _$CheckoutPreviewResponseDto {
   const factory CheckoutPreviewResponseDto({
     @Default([]) List<SubOrderPreviewResponseDto> subOrders,
     @Default(0) double total,
+    @Default(0) double advertisedTotal,
+    @Default(0) double paymentDiscountAmount,
     @Default(0) double balanceAvailable,
     @Default(0) double maxBalanceUsable,
   }) = _CheckoutPreviewResponseDto;

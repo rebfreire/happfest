@@ -6,9 +6,11 @@ import 'package:happfest/features/checkout/data/dto/checkout_preview_request_dto
 import 'package:happfest/features/checkout/data/dto/checkout_preview_response_dto.dart';
 import 'package:happfest/features/checkout/data/dto/checkout_request_dto.dart';
 import 'package:happfest/features/checkout/data/dto/checkout_response_dto.dart';
+import 'package:happfest/features/checkout/data/dto/payment_response_dto.dart';
 import 'package:happfest/features/checkout/data/mappers/checkout_mapper.dart';
 import 'package:happfest/features/checkout/domain/entities/checkout_preview.dart';
 import 'package:happfest/features/checkout/domain/entities/checkout_result.dart';
+import 'package:happfest/features/checkout/domain/entities/payment.dart';
 import 'package:happfest/features/checkout/domain/entities/payment_method.dart';
 import 'package:happfest/features/checkout/domain/repositories/checkout_repository.dart';
 
@@ -18,9 +20,15 @@ class CheckoutRepositoryImpl implements CheckoutRepository {
   final Dio _dio;
 
   @override
-  Future<Result<CheckoutPreview>> preview({required String partyId}) async {
+  Future<Result<CheckoutPreview>> preview({
+    required String partyId,
+    PaymentMethod? paymentMethod,
+  }) async {
     try {
-      final request = CheckoutPreviewRequestDto(partyId: partyId);
+      final request = CheckoutPreviewRequestDto(
+        partyId: partyId,
+        paymentMethod: paymentMethod?.apiValue,
+      );
       final response = await _dio.post<Map<String, dynamic>>(
         '/orders/checkout/preview',
         data: request.toJson(),
@@ -36,17 +44,34 @@ class CheckoutRepositoryImpl implements CheckoutRepository {
   Future<Result<CheckoutResult>> checkout({
     required String partyId,
     required PaymentMethod paymentMethod,
+    required String idempotencyKey,
+    double? useBalanceAmount,
   }) async {
     try {
       final request = CheckoutRequestDto(
         partyId: partyId,
         paymentMethod: paymentMethod.apiValue,
+        useBalanceAmount: useBalanceAmount,
       );
       final response = await _dio.post<Map<String, dynamic>>(
         '/orders/checkout',
         data: request.toJson(),
+        options: Options(headers: {'Idempotency-Key': idempotencyKey}),
       );
       final dto = CheckoutResponseDto.fromJson(response.data!);
+      return Ok(dto.toEntity());
+    } on DioException catch (exception) {
+      return Err(_failureOf(exception));
+    }
+  }
+
+  @override
+  Future<Result<Payment>> getPaymentStatus(String orderId) async {
+    try {
+      final response = await _dio.get<Map<String, dynamic>>(
+        '/payments/order/$orderId',
+      );
+      final dto = PaymentResponseDto.fromJson(response.data!);
       return Ok(dto.toEntity());
     } on DioException catch (exception) {
       return Err(_failureOf(exception));

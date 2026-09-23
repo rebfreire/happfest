@@ -43,6 +43,13 @@ class CartItemTile extends StatelessWidget {
                   item.storeName,
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
+                if (item.preferredDate != null) ...[
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(
+                    _scheduleLabel(item.preferredDate!, item.preferredTime),
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
                 const SizedBox(height: AppSpacing.xs),
                 Text(
                   currency.format(item.lineTotal),
@@ -82,5 +89,14 @@ class CartItemTile extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _scheduleLabel(String date, String? time) {
+    final parsed = DateTime.tryParse(date);
+    final formattedDate = parsed != null
+        ? DateFormat('dd/MM/yyyy').format(parsed)
+        : date;
+    if (time == null || time.isEmpty) return formattedDate;
+    return '$formattedDate às ${time.substring(0, 5)}';
   }
 }
