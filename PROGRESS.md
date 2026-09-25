@@ -1,6 +1,6 @@
 # HappFest — Progresso do App Flutter (Comprador)
 
-Última atualização: 2026-09-23
+Última atualização: 2026-09-25
 
 ## Visão geral
 
@@ -17,7 +17,7 @@ O app do fornecedor é um projeto separado, a ser iniciado depois.
 |---|---|---|
 | 0 | Setup (flavors, lints, CI, estrutura de pastas, Firebase) | ✅ Concluída |
 | 1 | Design System (tokens + catálogo de componentes) | ✅ Concluída |
-| 2 | Autenticação (login mobile: access + refresh token) | ✅ Concluída — testada com login real |
+| 2 | Autenticação (login + cadastro mobile: access + refresh token; navegação sem gate, login pedido só ao finalizar compra) | ✅ Concluída — testada com login real |
 | 3 | Home (busca, categorias, grid de produtos) | ✅ Concluída |
 | 4 | Detalhe do produto | ✅ Concluída |
 | 5 | Carrinho (com merge do carrinho anônimo no login) | ✅ Concluída |
@@ -49,6 +49,11 @@ Detalhes de cada feature em `docs/progress/`.
   têm UI — o checkout sempre finaliza o carrinho inteiro sem usar saldo.
 - **Editar endereço**: só criar/excluir/definir padrão têm UI — falta o
   `PUT /customers/me/addresses/{id}`.
+- **Cadastro (`/cadastro`) sem máscara/validação client-side**: CPF e
+  telefone são campos de texto simples (`TextInputType.number`/`.phone`),
+  sem formatação nem validação de dígitos antes de enviar — erros de
+  formato só aparecem via mensagem de erro da API (422). Fluxo ainda não
+  validado ao vivo. Ver [`docs/progress/03-auth.md`](docs/progress/03-auth.md).
 - **Editar/arquivar festa**: a API não expõe esses endpoints — só
   criar/listar são possíveis no contrato atual.
 - **Contrato da API (`docs/api/openapi.json`) não declara nenhum campo como

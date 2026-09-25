@@ -4,6 +4,7 @@ import 'package:happfest/features/auth/data/datasources/auth_remote_datasource.d
 import 'package:happfest/features/auth/data/repositories/auth_repository_impl.dart';
 import 'package:happfest/features/auth/domain/repositories/auth_repository.dart';
 import 'package:happfest/features/auth/domain/usecases/login_usecase.dart';
+import 'package:happfest/features/auth/domain/usecases/signup_usecase.dart';
 
 final authRemoteDataSourceProvider = Provider<AuthRemoteDataSource>((ref) {
   return AuthRemoteDataSource(ref.watch(dioProvider));
@@ -19,4 +20,8 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
 
 final loginUseCaseProvider = Provider<LoginUseCase>((ref) {
   return LoginUseCase(ref.watch(authRepositoryProvider));
+});
+
+final signupUseCaseProvider = Provider<SignupUseCase>((ref) {
+  return SignupUseCase(ref.watch(authRepositoryProvider));
 });

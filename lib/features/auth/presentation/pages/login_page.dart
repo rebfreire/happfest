@@ -14,8 +14,16 @@ import 'package:happfest/features/auth/presentation/controllers/login_controller
 import 'package:happfest/features/auth/presentation/controllers/login_state.dart';
 import 'package:happfest/l10n/generated/app_localizations.dart';
 
+/// Login por email/senha. [returnTo] é a rota que o usuário tentava
+/// acessar quando foi levado aqui (ex.: `/checkout`, ao tocar "Finalizar
+/// compra" sem estar logado) — navegado de volta ao concluir o login. Sem
+/// [returnTo], segue para a Home: o app é navegável sem login, só pede
+/// autenticação quando uma ação realmente exige (finalizar compra, ver
+/// perfil/festas).
 class LoginPage extends ConsumerStatefulWidget {
-  const LoginPage({super.key});
+  const LoginPage({super.key, this.returnTo});
+
+  final String? returnTo;
 
   @override
   ConsumerState<LoginPage> createState() => _LoginPageState();
@@ -52,7 +60,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     ref.listen(loginControllerProvider, (previous, next) {
       switch (next) {
         case LoginSuccess():
-          context.go('/');
+          context.go(widget.returnTo ?? '/');
         case LoginFailure(:final failure):
           AppSnackbar.error(context, failure.message);
         case LoginIdle():
@@ -99,12 +107,23 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     isLoading: isLoading,
                     expanded: true,
                   ),
+                  AppButton(
+                    label: 'Criar conta',
+                    variant: AppButtonVariant.tertiary,
+                    expanded: true,
+                    onPressed: isLoading
+                        ? null
+                        : () => context.push(
+                            '/cadastro',
+                            extra: widget.returnTo,
+                          ),
+                  ),
                   if (kDebugMode)
                     AppButton(
                       label: 'Pular login (debug)',
                       variant: AppButtonVariant.ghost,
                       expanded: true,
-                      onPressed: () => context.go('/'),
+                      onPressed: () => context.go(widget.returnTo ?? '/'),
                     ),
                 ],
               ),

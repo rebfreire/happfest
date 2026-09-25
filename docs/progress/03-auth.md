@@ -1,12 +1,34 @@
-# Autenticação (Login)
+# Autenticação (Login + Cadastro)
 
 Status: ✅ Concluído — testado com login real de ponta a ponta ·
 Commit: `b9e4ce0` (implementação inicial), `d87fecb` (migração pro contrato mobile)
 
 ## Escopo
 
-Login apenas por email/senha na v1. Login social (Google, `/auth/google`)
-fica para depois.
+Login e cadastro por email/senha na v1. Login social (Google,
+`/auth/mobile/google`) fica para depois.
+
+## Fluxo de navegação (sem gate no início)
+
+O app **não pede login para navegar** — `initialLocation` do router é a
+Home (`/`), e Home/Categorias/Produto/Carrinho funcionam para visitante,
+com o carrinho anônimo via `X-Cart-Session-Id` (ver `CartSessionInterceptor`).
+Login só é pedido quando uma ação realmente exige conta:
+
+- **Finalizar compra** ([`CartPage._goToCheckout`](../../lib/features/cart/presentation/pages/cart_page.dart)):
+  sem token salvo, abre `/login` (com `extra: '/checkout'` como
+  `returnTo`) em vez de ir direto pro checkout.
+- **Cadastrar festa** ([`PartiesPage._newParty`](../../lib/features/parties/presentation/pages/parties_page.dart)):
+  mesmo padrão, `returnTo: '/festas/novo'`.
+- **Abas Perfil/Festas sem login**: em vez do erro genérico de sessão
+  expirada, mostram um `AppEmptyState` com botão "Fazer login" quando a
+  API responde 401 (`UnauthorizedFailure`) — ver `AccountPage`/
+  `PartiesPage`.
+
+Em todos os casos, `LoginPage`/`SignupPage` recebem `returnTo` (via
+`extra` da rota) e navegam de volta pra lá ao concluir — sem `returnTo`,
+segue pra Home. A tela de login também tem um botão "Criar conta" que
+leva pra `/cadastro`, carregando o mesmo `returnTo`.
 
 ## Histórico
 
@@ -40,6 +62,13 @@ fica para depois.
 - O endpoint mobile sempre cria a sessão no contexto de **comprador**,
   mesmo para contas de fornecedor/franqueado/admin — por isso o mapper usa
   `profileType ?? ProfileTypeDto.customer` como fallback.
+- **Cadastro**: `SignupRequestDto` (`nome`/`email`/`senha`/`cpf`/`phone`) →
+  `POST /customers` (público, sem `Authorization`) → `CustomerResponse`.
+  Esse endpoint não devolve token — `AuthRepositoryImpl.signup()` chama o
+  `login()` normal em seguida com as mesmas credenciais para obter a
+  sessão, reaproveitando toda a lógica de validação/merge de carrinho já
+  existente. `SignupController`/`SignupPage` seguem o mesmo padrão do
+  `LoginController`/`LoginPage`.
 
 ## Nota de nullability
 

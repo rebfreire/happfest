@@ -7,6 +7,7 @@ import 'package:happfest/features/account/presentation/pages/account_page.dart';
 import 'package:happfest/features/account/presentation/pages/new_address_page.dart';
 import 'package:happfest/features/account/presentation/pages/order_detail_page.dart';
 import 'package:happfest/features/auth/presentation/pages/login_page.dart';
+import 'package:happfest/features/auth/presentation/pages/signup_page.dart';
 import 'package:happfest/features/cart/presentation/pages/cart_page.dart';
 import 'package:happfest/features/categories/presentation/pages/categories_page.dart';
 import 'package:happfest/features/categories/presentation/pages/category_products_page.dart';
@@ -20,9 +21,21 @@ import 'package:happfest/features/products/presentation/pages/product_detail_pag
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
-    initialLocation: '/login',
+    // O app é navegável sem login (home, categorias, produto, carrinho) —
+    // login só é pedido quando uma ação exige conta (finalizar compra, ver
+    // perfil/festas), ver `CartPage`/`AccountPage`/`PartiesPage`.
+    initialLocation: '/',
     routes: [
-      GoRoute(path: '/login', builder: (context, state) => const LoginPage()),
+      GoRoute(
+        path: '/login',
+        builder: (context, state) =>
+            LoginPage(returnTo: state.extra as String?),
+      ),
+      GoRoute(
+        path: '/cadastro',
+        builder: (context, state) =>
+            SignupPage(returnTo: state.extra as String?),
+      ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) =>
             AppShellPage(navigationShell: navigationShell),

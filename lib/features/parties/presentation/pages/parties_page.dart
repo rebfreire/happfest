@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:happfest/app/di/providers.dart';
 import 'package:happfest/core/error/failure.dart';
 import 'package:happfest/core/error/result.dart';
 import 'package:happfest/design_system/components/app_badge.dart';
@@ -17,6 +20,18 @@ import 'package:intl/intl.dart';
 class PartiesPage extends ConsumerWidget {
   const PartiesPage({super.key});
 
+  /// Cadastrar festa exige conta — sem token salvo, pede login (com opção
+  /// de criar conta) antes de seguir para `/festas/novo`.
+  Future<void> _newParty(BuildContext context, WidgetRef ref) async {
+    final token = await ref.read(tokenStorageProvider).readAccessToken();
+    if (!context.mounted) return;
+    if (token == null) {
+      unawaited(context.push('/login', extra: '/festas/novo'));
+      return;
+    }
+    unawaited(context.push('/festas/novo'));
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final partiesAsync = ref.watch(partiesProvider);
@@ -25,7 +40,7 @@ class PartiesPage extends ConsumerWidget {
       title: 'Festas',
       onRefresh: () async => ref.invalidate(partiesProvider),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => context.push('/festas/novo'),
+        onPressed: () => unawaited(_newParty(context, ref)),
         child: const Icon(Icons.add),
       ),
       body: partiesAsync.when(
@@ -35,6 +50,12 @@ class PartiesPage extends ConsumerWidget {
           onRetry: () => ref.invalidate(partiesProvider),
         ),
         data: (result) => switch (result) {
+          Err(failure: UnauthorizedFailure()) => AppEmptyState(
+            icon: Icons.person_outline,
+            message: 'Faça login para ver e cadastrar suas festas.',
+            actionLabel: 'Fazer login',
+            onAction: () => context.push('/login', extra: '/festas'),
+          ),
           Ok(:final value) when value.isEmpty => const AppEmptyState(
             message: 'Você ainda não cadastrou nenhuma festa.',
             icon: Icons.celebration_outlined,

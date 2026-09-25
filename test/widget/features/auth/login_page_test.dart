@@ -32,6 +32,15 @@ class _ScriptedAuthRepository implements AuthRepository {
   }
 
   @override
+  Future<Result<AuthSession>> signup({
+    required String name,
+    required String email,
+    required String password,
+    required String cpf,
+    required String phone,
+  }) async => _result;
+
+  @override
   Future<void> logout() async {}
 }
 

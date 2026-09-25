@@ -28,7 +28,7 @@ class AccountPage extends ConsumerWidget {
 
   Future<void> _logout(BuildContext context, WidgetRef ref) async {
     await ref.read(authRepositoryProvider).logout();
-    if (context.mounted) context.go('/login');
+    if (context.mounted) context.go('/');
   }
 
   @override
@@ -50,6 +50,12 @@ class AccountPage extends ConsumerWidget {
           onRetry: () => ref.invalidate(accountContextProvider),
         ),
         data: (result) => switch (result) {
+          Err(failure: UnauthorizedFailure()) => AppEmptyState(
+            icon: Icons.person_outline,
+            message: 'Faça login para ver seu perfil, endereços e pedidos.',
+            actionLabel: 'Fazer login',
+            onAction: () => context.push('/login', extra: '/perfil'),
+          ),
           Ok(:final value) => ListView(
             padding: const EdgeInsets.all(AppSpacing.md),
             children: [

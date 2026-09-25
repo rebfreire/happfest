@@ -7,5 +7,15 @@ abstract interface class AuthRepository {
     required String password,
   });
 
+  /// `POST /customers` seguido de login automático com as mesmas
+  /// credenciais — o cadastro em si não retorna tokens.
+  Future<Result<AuthSession>> signup({
+    required String name,
+    required String email,
+    required String password,
+    required String cpf,
+    required String phone,
+  });
+
   Future<void> logout();
 }

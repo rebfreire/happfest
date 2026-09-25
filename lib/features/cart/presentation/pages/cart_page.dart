@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:happfest/app/di/providers.dart';
 import 'package:happfest/core/error/failure.dart';
 import 'package:happfest/core/error/result.dart';
 import 'package:happfest/design_system/components/app_button.dart';
@@ -64,6 +67,19 @@ class _CartPageState extends ConsumerState<CartPage> {
       case Err(:final failure):
         AppSnackbar.error(context, failure.message);
     }
+  }
+
+  /// O carrinho funciona sem login (sessão anônima), mas finalizar a
+  /// compra exige conta — se não houver token salvo, pede login (com
+  /// opção de criar conta) antes de seguir para `/checkout`.
+  Future<void> _goToCheckout() async {
+    final token = await ref.read(tokenStorageProvider).readAccessToken();
+    if (!mounted) return;
+    if (token == null) {
+      unawaited(context.push('/login', extra: '/checkout'));
+      return;
+    }
+    unawaited(context.push('/checkout'));
   }
 
   @override
@@ -130,7 +146,7 @@ class _CartPageState extends ConsumerState<CartPage> {
                       AppButton.confirm(
                         label: 'Finalizar compra',
                         expanded: true,
-                        onPressed: () => context.push('/checkout'),
+                        onPressed: () => unawaited(_goToCheckout()),
                       ),
                     ],
                   ),

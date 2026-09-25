@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:happfest/features/auth/data/dto/login_request_dto.dart';
 import 'package:happfest/features/auth/data/dto/login_response_dto.dart';
+import 'package:happfest/features/auth/data/dto/signup_request_dto.dart';
 
 class AuthRemoteDataSource {
   const AuthRemoteDataSource(this._dio);
@@ -13,6 +14,16 @@ class AuthRemoteDataSource {
       data: request.toJson(),
     );
     return LoginResponseDto.fromJson(response.data!);
+  }
+
+  /// `POST /customers` — cadastro público, sem autenticação. Não retorna
+  /// tokens; o login em seguida (mesmas credenciais) é responsabilidade do
+  /// repositório/controller.
+  Future<void> signup(SignupRequestDto request) {
+    return _dio.post<Map<String, dynamic>>(
+      '/customers',
+      data: request.toJson(),
+    );
   }
 
   /// A resposta tem o mesmo formato do login — ambos os tokens (access e
