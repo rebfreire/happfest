@@ -50,12 +50,15 @@ class PartiesPage extends ConsumerWidget {
           onRetry: () => ref.invalidate(partiesProvider),
         ),
         data: (result) => switch (result) {
-          Err(failure: UnauthorizedFailure()) => AppEmptyState(
-            icon: Icons.person_outline,
-            message: 'Faça login para ver e cadastrar suas festas.',
-            actionLabel: 'Fazer login',
-            onAction: () => context.push('/login', extra: '/festas'),
-          ),
+          Err(
+            failure: UnauthorizedFailure() || ForbiddenFailure(),
+          ) =>
+            AppEmptyState(
+              icon: Icons.person_outline,
+              message: 'Faça login para ver e cadastrar suas festas.',
+              actionLabel: 'Fazer login',
+              onAction: () => context.push('/login', extra: '/festas'),
+            ),
           Ok(:final value) when value.isEmpty => const AppEmptyState(
             message: 'Você ainda não cadastrou nenhuma festa.',
             icon: Icons.celebration_outlined,
