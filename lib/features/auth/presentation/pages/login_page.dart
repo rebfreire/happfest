@@ -93,6 +93,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     });
 
     return Scaffold(
+      // O login sempre chega por push (o app é navegável sem conta —
+      // ver o comentário da classe), então sempre há para onde voltar;
+      // o AppBar padrão já resolve isso com a seta de voltar automática.
+      appBar: AppBar(),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
