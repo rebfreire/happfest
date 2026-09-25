@@ -4,8 +4,15 @@
   "genericErrorTitle": "Something went wrong",
   "genericErrorMessage": "We couldn't complete this action. Please try again.",
   "retryButton": "Try again",
+  "loginTitle": "Log in",
+  "loginSubtitle": "Choose how you'd like to sign in",
   "loginEmailLabel": "Email",
   "loginPasswordLabel": "Password",
   "loginSubmitButton": "Log in",
+  "loginEmailHint": "Enter your email",
+  "loginPasswordHint": "Enter your password",
+  "loginForgotPassword": "Forgot my password",
+  "loginNoAccountQuestion": "Don't have an account? ",
+  "loginCreateAccountLink": "Create account",
   "searchPlaceholder": "Search cakes, decor, catering..."
 }

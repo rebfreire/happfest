@@ -7,8 +7,15 @@
   "genericErrorTitle": "Algo deu errado",
   "genericErrorMessage": "Não conseguimos completar essa ação. Tente novamente.",
   "retryButton": "Tentar novamente",
+  "loginTitle": "Entrar",
+  "loginSubtitle": "Escolha como deseja entrar na sua conta",
   "loginEmailLabel": "E-mail",
   "loginPasswordLabel": "Senha",
   "loginSubmitButton": "Entrar",
+  "loginEmailHint": "Digite seu email",
+  "loginPasswordHint": "Digite sua senha",
+  "loginForgotPassword": "Esqueci minha senha",
+  "loginNoAccountQuestion": "Não tem uma conta? ",
+  "loginCreateAccountLink": "Criar conta",
   "searchPlaceholder": "Buscar bolos, decoração, buffet..."
 }

@@ -41,6 +41,10 @@ class _ScriptedAuthRepository implements AuthRepository {
   }) async => _result;
 
   @override
+  Future<Result<void>> requestPasswordReset(String email) async =>
+      const Ok(null);
+
+  @override
   Future<void> logout() async {}
 }
 
@@ -111,7 +115,7 @@ void main() {
 
     expect(find.text('E-mail'), findsOneWidget);
     expect(find.text('Senha'), findsOneWidget);
-    expect(find.text('Entrar'), findsOneWidget);
+    expect(find.widgetWithText(ElevatedButton, 'Entrar'), findsOneWidget);
   });
 
   testWidgets('shows an error snackbar on failed login', (tester) async {
@@ -119,7 +123,7 @@ void main() {
 
     await tester.enterText(find.byType(TextField).first, 'a@b.com');
     await tester.enterText(find.byType(TextField).last, 'wrong-password');
-    await tester.tap(find.text('Entrar'));
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Entrar'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 20));
 
@@ -137,7 +141,7 @@ void main() {
 
     await tester.enterText(find.byType(TextField).first, 'a@b.com');
     await tester.enterText(find.byType(TextField).last, '123456');
-    await tester.tap(find.text('Entrar'));
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Entrar'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 20));
     await tester.pumpAndSettle();

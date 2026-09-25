@@ -17,5 +17,9 @@ abstract interface class AuthRepository {
     required String phone,
   });
 
+  /// `POST /auth/recuperar-senha` — envia um e-mail com link de
+  /// recuperação de senha; público, não exige sessão ativa.
+  Future<Result<void>> requestPasswordReset(String email);
+
   Future<void> logout();
 }

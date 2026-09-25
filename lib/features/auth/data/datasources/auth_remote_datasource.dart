@@ -26,6 +26,16 @@ class AuthRemoteDataSource {
     );
   }
 
+  /// `POST /auth/recuperar-senha?email=...` — dispara o e-mail de
+  /// recuperação de senha (link com token, tratado fora do app). Público,
+  /// sem autenticação.
+  Future<void> requestPasswordReset(String email) {
+    return _dio.post<void>(
+      '/auth/recuperar-senha',
+      queryParameters: {'email': email},
+    );
+  }
+
   /// A resposta tem o mesmo formato do login — ambos os tokens (access e
   /// refresh) devem ser substituídos pelos valores novos.
   Future<LoginResponseDto> refresh(String refreshToken) async {

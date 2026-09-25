@@ -79,6 +79,16 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<Result<void>> requestPasswordReset(String email) async {
+    try {
+      await _remoteDataSource.requestPasswordReset(email);
+      return const Ok(null);
+    } on DioException catch (exception) {
+      return Err(_failureOf(exception));
+    }
+  }
+
+  @override
   Future<void> logout() async {
     await _tokenStorage.clear();
     // Nova sessão anônima de carrinho para o próximo uso do dispositivo,
