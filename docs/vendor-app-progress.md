@@ -59,6 +59,38 @@ l10n do app), reusa `LoginController`/`LoginState`/`LoginUseCase` de
 Testes: 3 unit (usecases, mock do repositório) + 3 widget (`DashboardPage`
 em sucesso/vazio/erro). Tudo verde (`flutter analyze` e `flutter test`).
 
+### 5. Pedidos / orders (feito)
+`lib/features/orders/` — Clean Architecture completa:
+- `domain/entities`: `SubOrder` (completo: itens, valores, entrega,
+  motivo de cancelamento), `SubOrderItem`, `SubOrderStatus` (8 estados).
+- `domain/repositories` + 6 usecases (um por ação): `ListOrdersUseCase`,
+  `GetOrderDetailUseCase`, `AcceptOrderUseCase`, `RejectOrderUseCase`,
+  `DeliverOrderUseCase`, `CancelOrderUseCase`.
+- `data`: DTOs de `GET /sub-orders` (paginado, filtro `status`),
+  `GET /sub-orders/{id}`, `POST /sub-orders/{id}/accept|reject|deliver|
+  cancel/supplier`.
+- `presentation`: `OrdersPage` (lista com filtro por status via chips) +
+  `OrderDetailPage` (itens, endereço/data de entrega, ações contextuais
+  por status — aceitar/recusar/cancelar quando `PENDING`, marcar entregue
+  quando `ACCEPTED`).
+
+**Importante — `/complete` e `/contest` são ações do CUSTOMER, não do
+supplier** (confirmado no `summary` do OpenAPI: "Customer confirma..."/
+"Customer contesta..."). Não adicionar botão de concluir/contestar no
+app do fornecedor — isso é tela do buyer.
+
+Reject/cancel aceitam `reason` opcional na API, mas a UI hoje não captura
+motivo (só confirma via `AppDialog.destructive`, chama sem reason) — se
+o time de produto quiser capturar o motivo, falta um dialog com campo de
+texto (não existe no design system ainda, teria que ser criado lá,
+seção 3 do AGENTS.md).
+
+Dashboard ganhou link "Ver todos" (`/orders`) na seção de pedidos
+pendentes, e os itens da lista de pendentes agora navegam pro detalhe.
+
+Testes: 6 unit (usecases) + 5 widget (`OrdersPage` sucesso/vazio/erro,
+`OrderDetailPage` ações + aceitar com sucesso/erro). Tudo verde.
+
 ## Achados / armadilhas (não repetir)
 
 1. **`AppLoading.skeleton()` é um `ListView` internamente.** Nunca usar
@@ -85,6 +117,17 @@ em sucesso/vazio/erro). Tudo verde (`flutter analyze` e `flutter test`).
    com `fvm`.
 6. `ambiente Bash` às vezes falha transitoriamente no classificador de
    auto-mode; só retry, não é o comando que está errado.
+7. **Nunca usar `TextButton`/`ElevatedButton` cru — regra do AGENTS.md
+   seção 3.3, e não é só estilo.** Um `TextButton` cru dentro de um `Row`
+   dentro de um item de `ListView` (2 níveis de `Flex` aninhados) causou
+   um crash real de layout no Flutter 3.44 (`BoxConstraints forces an
+   infinite width`, via `_RenderInputPadding` do Material) — `Expanded`
+   no texto vizinho não resolveu. Trocar por `AppButton(variant: ghost,
+   size: small)` resolveu na hora. Se aparecer esse erro específico de
+   novo, suspeitar primeiro de botão Material cru, não de `Row`/`Column`.
+8. **`/sub-orders/{id}/complete` e `/contest` são ações do comprador**,
+   não do fornecedor — não adicionar essas ações no app vendor (ver
+   seção "Pedidos" acima).
 
 ## Endpoints já mapeados por feature futura (do `docs/api/openapi.json`)
 
@@ -110,9 +153,8 @@ em sucesso/vazio/erro). Tudo verde (`flutter analyze` e `flutter test`).
 
 1. ~~Login~~ ✅
 2. ~~Dashboard~~ ✅
-3. **Pedidos (orders)** ← próximo: lista + aceitar/recusar/entregar/
-   concluir/cancelar sub-pedido
-4. Produtos (catálogo, CRUD, variantes, fotos)
+3. ~~Pedidos (orders)~~ ✅
+4. **Produtos (catálogo, CRUD, variantes, fotos)** ← próximo
 5. Agenda
 6. Documentos
 7. Perfil / métricas (tela dedicada, hoje só aparece resumida no

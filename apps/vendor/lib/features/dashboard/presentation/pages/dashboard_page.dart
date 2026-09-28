@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:happfest_core/core/error/failure.dart';
 import 'package:happfest_core/core/error/result.dart';
+import 'package:happfest_design_system/design_system/components/app_button.dart';
 import 'package:happfest_design_system/design_system/components/app_scaffold.dart';
 import 'package:happfest_design_system/design_system/feedback/app_empty_state.dart';
 import 'package:happfest_design_system/design_system/feedback/app_error_state.dart';
@@ -102,11 +104,23 @@ class _PendingOrdersSection extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Pedidos pendentes',
-          style: Theme.of(context).textTheme.titleMedium,
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Text(
+                'Pedidos pendentes',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+            ),
+            AppButton(
+              label: 'Ver todos',
+              onPressed: () => context.push('/orders'),
+              variant: AppButtonVariant.ghost,
+              size: AppButtonSize.small,
+            ),
+          ],
         ),
-        const SizedBox(height: AppSpacing.sm),
         ordersAsync.when(
           loading: () => const AppLoading(),
           error: (error, stackTrace) => AppErrorState(
@@ -120,7 +134,10 @@ class _PendingOrdersSection extends ConsumerWidget {
             Ok(:final value) => Column(
               children: [
                 for (final order in value.content)
-                  PendingOrderTile(order: order),
+                  PendingOrderTile(
+                    order: order,
+                    onTap: () => context.push('/orders/${order.id}'),
+                  ),
               ],
             ),
             Err(:final failure) => AppErrorState(

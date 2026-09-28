@@ -2,6 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:happfest_fornecedor/features/auth/presentation/pages/login_page.dart';
 import 'package:happfest_fornecedor/features/dashboard/presentation/pages/dashboard_page.dart';
+import 'package:happfest_fornecedor/features/orders/presentation/pages/order_detail_page.dart';
+import 'package:happfest_fornecedor/features/orders/presentation/pages/orders_page.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -9,6 +11,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     routes: [
       GoRoute(path: '/login', builder: (context, state) => const LoginPage()),
       GoRoute(path: '/', builder: (context, state) => const DashboardPage()),
+      GoRoute(
+        path: '/orders',
+        builder: (context, state) => const OrdersPage(),
+      ),
+      GoRoute(
+        path: '/orders/:id',
+        builder: (context, state) =>
+            OrderDetailPage(orderId: state.pathParameters['id']!),
+      ),
     ],
   );
 });
