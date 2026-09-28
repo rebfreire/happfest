@@ -1,0 +1,22 @@
+name: happfest_design_system
+description: "Design system compartilhado entre os apps HappFest (tokens, tema, componentes)."
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: ^3.12.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_riverpod: ^3.4.2
+  happfest_core:
+    path: ../core
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  very_good_analysis: ^10.3.0
+
+flutter:
+  uses-material-design: true
