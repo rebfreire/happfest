@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
-import 'package:happfest/features/auth/presentation/pages/login_page.dart';
-import 'package:happfest/l10n/generated/app_localizations.dart';
 import 'package:happfest_auth/auth/data/auth_providers.dart';
 import 'package:happfest_auth/auth/domain/entities/auth_session.dart';
 import 'package:happfest_auth/auth/domain/entities/profile_type.dart';
@@ -12,6 +10,8 @@ import 'package:happfest_auth/auth/domain/usecases/login_usecase.dart';
 import 'package:happfest_core/core/error/failure.dart';
 import 'package:happfest_core/core/error/result.dart';
 import 'package:happfest_design_system/design_system/theme/app_theme.dart';
+import 'package:happfest_fornecedor/features/auth/presentation/pages/login_page.dart';
+import 'package:happfest_fornecedor/l10n/generated/app_localizations.dart';
 
 class _ScriptedAuthRepository implements AuthRepository {
   _ScriptedAuthRepository(this._result);
@@ -86,7 +86,7 @@ void main() {
     const session = AuthSession(
       token: 't',
       userId: 'u',
-      profileType: ProfileType.customer,
+      profileType: ProfileType.supplier,
       permissions: [],
     );
     await tester.pumpWidget(_wrap(const Ok(session)));

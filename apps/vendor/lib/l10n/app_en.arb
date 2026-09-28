@@ -1,5 +1,8 @@
 {
   "@@locale": "en",
-  "appName": "HappFest Supplier",
-  "setupPlaceholderMessage": "Supplier app setup in progress."
+  "appName": "HappFest Fornecedor",
+  "setupPlaceholderMessage": "Supplier app setup in progress.",
+  "loginEmailLabel": "Email",
+  "loginPasswordLabel": "Password",
+  "loginSubmitButton": "Sign in"
 }

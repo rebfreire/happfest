@@ -8,7 +8,8 @@ apps/
   buyer/    # app do comprador (busca, produto, carrinho, checkout, pedidos, conta)
   vendor/   # app do fornecedor (pedidos, produtos, agenda, documentos, métricas)
 packages/
-  core/            # happfest_core — rede (dio), erro, storage, config/flavors
+  core/            # happfest_core — rede (dio), erro, storage, config/flavors, DI
+  auth/            # happfest_auth — login/sessão (domain + data), compartilhado
   design_system/   # happfest_design_system — tokens, tema, componentes
 docs/
   api/openapi.json # contrato da API (fonte de verdade dos models)

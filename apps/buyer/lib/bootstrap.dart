@@ -7,9 +7,9 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:happfest/app/app.dart';
-import 'package:happfest/app/di/providers.dart';
 import 'package:happfest_core/core/config/env.dart';
 import 'package:happfest_core/core/config/flavor.dart';
+import 'package:happfest_core/core/di/app_providers.dart';
 
 bool _firebaseReady = false;
 

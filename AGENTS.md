@@ -112,8 +112,14 @@ packages/
 │       ├── network/                # DioClient, interceptors, ApiException
 │       ├── error/                  # Failure, Result, mapeamento de erros
 │       ├── storage/                # secure storage, cache
+│       ├── di/                     # providers Riverpod globais (dio, storage, env)
 │       ├── utils/                  # extensions, formatters (data, moeda, doc)
 │       └── logging/
+├── auth/                           # happfest_auth — login/sessão compartilhados
+│   └── lib/auth/
+│       ├── domain/     (AuthSession, ProfileType, AuthRepository, LoginUseCase)
+│       ├── data/       (DTOs, datasource, repository impl, mapper, providers)
+│       └── presentation/controllers/ (LoginController, LoginState — genéricos)
 └── design_system/                  # happfest_design_system — ⚠️ ver seção 3
     └── lib/design_system/
         ├── tokens/                 # cores, espaçamento, raio, sombra, tipografia, duração
@@ -123,14 +129,21 @@ packages/
         └── layout/                  # responsividade, breakpoints, AppScaffold, grids
 ```
 
-Cada app importa `core/` e `design_system/` como `package:happfest_core/...` e
+Cada app importa `core/`, `auth/` e `design_system/` como
+`package:happfest_core/...`, `package:happfest_auth/...` e
 `package:happfest_design_system/...` (path dependency em `pubspec.yaml`, sem
 Melos por enquanto). Uma feature nunca importa `presentation/` de outra
 feature nem de outro app. Compartilhamento entre `apps/buyer` e
-`apps/vendor` só acontece via `packages/core` ou `packages/design_system` —
-se os dois times de feature precisarem do mesmo código de domínio (ex.:
-autenticação), isso é decisão explícita de promover código para lá, não
-faça por padrão.
+`apps/vendor` só acontece via `packages/` — se os dois apps precisarem do
+mesmo código de domínio, isso é decisão explícita de promover código para
+lá, não faça por padrão (login foi promovido porque é **idêntico** nos dois
+apps — mesmo endpoint, mesmo contrato, mesmos 4 `ProfileType`).
+
+`LoginPage` (a tela em si) é a exceção: fica em cada app, não no pacote,
+porque depende do `AppLocalizations` gerado daquele app (cada app tem seu
+próprio `l10n.yaml`/ARBs) e pode navegar para destinos diferentes após o
+login. `LoginController`/`LoginState` (lógica, sem UI) ficam em
+`packages/auth` e são 100% reusados.
 
 ---
 

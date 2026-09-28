@@ -13,6 +13,7 @@ jobs:
         project:
           - packages/core
           - packages/design_system
+          - packages/auth
           - apps/buyer
           - apps/vendor
     defaults:
@@ -36,7 +37,7 @@ jobs:
         run: flutter pub get
 
       - name: Generate code (freezed/json_serializable/go_router)
-        if: startsWith(matrix.project, 'apps/')
+        if: startsWith(matrix.project, 'apps/') || matrix.project == 'packages/auth'
         run: dart run build_runner build --delete-conflicting-outputs
 
       - name: Verify formatting

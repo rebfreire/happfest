@@ -4,5 +4,8 @@
   "@appName": {
     "description": "Nome do app, exibido no splash e nas configurações do sistema"
   },
-  "setupPlaceholderMessage": "Setup do app do fornecedor em andamento."
+  "setupPlaceholderMessage": "Setup do app do fornecedor em andamento.",
+  "loginEmailLabel": "E-mail",
+  "loginPasswordLabel": "Senha",
+  "loginSubmitButton": "Entrar"
 }

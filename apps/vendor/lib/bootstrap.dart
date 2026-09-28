@@ -8,8 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:happfest_core/core/config/env.dart';
 import 'package:happfest_core/core/config/flavor.dart';
+import 'package:happfest_core/core/di/app_providers.dart';
 import 'package:happfest_fornecedor/app/app.dart';
-import 'package:happfest_fornecedor/app/di/providers.dart';
 
 bool _firebaseReady = false;
 

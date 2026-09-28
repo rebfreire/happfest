@@ -445,6 +445,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.3.2"
+  happfest_auth:
+    dependency: "direct main"
+    description:
+      path: "../../packages/auth"
+      relative: true
+    source: path
+    version: "0.1.0"
   happfest_core:
     dependency: "direct main"
     description:

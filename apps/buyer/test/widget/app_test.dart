@@ -1,9 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:happfest/app/app.dart';
-import 'package:happfest/app/di/providers.dart';
 import 'package:happfest_core/core/config/env.dart';
 import 'package:happfest_core/core/config/flavor.dart';
+import 'package:happfest_core/core/di/app_providers.dart';
 
 void main() {
   testWidgets('HappFestApp shows the setup placeholder page', (tester) async {

@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:happfest/l10n/generated/app_localizations.dart';
 import 'package:happfest_auth/auth/presentation/controllers/login_controller.dart';
 import 'package:happfest_auth/auth/presentation/controllers/login_state.dart';
 import 'package:happfest_design_system/design_system/components/app_button.dart';
@@ -11,6 +10,7 @@ import 'package:happfest_design_system/design_system/components/app_form_layout.
 import 'package:happfest_design_system/design_system/components/app_text_field.dart';
 import 'package:happfest_design_system/design_system/feedback/app_snackbar.dart';
 import 'package:happfest_design_system/design_system/tokens/app_spacing.dart';
+import 'package:happfest_fornecedor/l10n/generated/app_localizations.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
