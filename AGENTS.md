@@ -14,8 +14,8 @@ Esta seção é o único ponto do documento que precisa ser completado com dados
 
 | Item | Valor |
 |---|---|
-| Nome do app | HappFest (comprador) — provisório, ajustar se necessário |
-| Bundle ID iOS / applicationId Android | `br.com.comcode.happfest` (prod) / `.dev` / `.staging` para os outros flavors |
+| Nome do app | HappFest — monorepo com dois apps: `apps/buyer` (comprador) e `apps/vendor` (fornecedor) |
+| Bundle ID iOS / applicationId Android | `br.com.comcode.happfest` (buyer, prod) / `br.com.comcode.happfest.fornecedor` (vendor, prod) — `.dev` / `.staging` para os outros flavors em cada um |
 | Base URL (dev / staging / prod) | `https://happ-api.comcode.com.br/api/v1` nos 3 flavors por enquanto — não há dev/staging separados ainda |
 | Documentação da API (OpenAPI/Swagger) | https://happ-api.comcode.com.br/api/v1/swagger-ui/index.html · JSON: https://happ-api.comcode.com.br/api/v1/api-docs |
 | Tipo de autenticação | JWT Bearer. `POST /auth/login` (email/senha) retorna `{ token, userId, profileType, permissions }`. `POST /auth/refresh?token=...` troca o token atual por um novo — **não há refresh token separado** no contrato atual. Login Google (`/auth/google`) existe na API mas fica fora da v1 do app. |
@@ -23,7 +23,11 @@ Esta seção é o único ponto do documento que precisa ser completado com dados
 | Idiomas | pt-BR (padrão) + en |
 | Analytics / Crash | Firebase (Analytics + Crashlytics) — SDKs já no `pubspec.yaml`; falta rodar `flutterfire configure` (login interativo, fora do escopo desta sessão) |
 
-**Escopo deste repositório:** app do **comprador** (busca, produto, carrinho, checkout, pedidos, conta). As áreas de fornecedor, franquia e admin do backend (`/suppliers/*`, `/franchise/*`, `/admin/*`) ficam fora — serão um app Flutter separado, discutido depois.
+**Escopo deste monorepo:**
+- `apps/buyer` — app do **comprador** (busca, produto, carrinho, checkout, pedidos, conta).
+- `apps/vendor` — app do **fornecedor** (pedidos/`sub-orders`, catálogo de produtos, agenda, documentos, métricas, chat com o comprador), consumindo `/suppliers/me*`, `/products/*`, `/sub-orders/*`, `/stores/*`, `/supplier/agenda`, `/chats/*`.
+- `/franchise/*` e `/admin/*` ficam fora dos dois — serão um painel separado (provavelmente web), discutido depois.
+- `packages/core` (`happfest_core`) e `packages/design_system` (`happfest_design_system`) são compartilhados pelos dois apps — mudança ali afeta ambos; ver seção 2.1.
 
 **Importante:** o `api-docs` (OpenAPI) já foi baixado e é a fonte de verdade dos models — a IA deve gerar os models e o client **a partir do contrato**, nunca "adivinhando" campos.
 
@@ -81,41 +85,52 @@ Regras não negociáveis:
 4. Widget não contém regra de negócio. Widget lê estado e dispara intenções.
 5. DTO (data) ≠ Entity (domain). Sempre há um `mapper`.
 
-### 2.1 Estrutura de pastas
+### 2.1 Estrutura de pastas (monorepo)
 
 ```
-lib/
-├── main.dart
-├── bootstrap.dart                 # runZonedGuarded, error handlers, ProviderScope
-├── app/
-│   ├── app.dart                   # MaterialApp.router
-│   ├── router/                    # go_router, rotas, guards, transições
-│   └── di/                        # providers globais (dio, storage, env)
-├── core/
-│   ├── config/                    # Env (dart-define), flavors, constantes
-│   ├── network/                   # DioClient, interceptors, ApiException
-│   ├── error/                     # Failure, Result, mapeamento de erros
-│   ├── storage/                   # secure storage, cache
-│   ├── utils/                     # extensions, formatters (data, moeda, doc)
-│   └── logging/
-├── design_system/                 # ⚠️ ver seção 3 — o coração da padronização
-│   ├── tokens/                    # cores, espaçamento, raio, sombra, tipografia, duração
-│   ├── theme/                     # AppTheme light/dark, ThemeExtensions
-│   ├── components/                # AppButton, AppTextField, AppCard, AppDialog...
-│   ├── feedback/                  # snackbars, toasts, loading overlay, empty/error states
-│   └── layout/                    # responsividade, breakpoints, AppScaffold, grids
-├── features/
-│   └── <feature>/
-│       ├── domain/    (entities, repositories, usecases)
-│       ├── data/      (dtos, datasources, repositories_impl, mappers)
-│       └── presentation/ (pages, widgets, controllers, state)
-└── l10n/                          # arb + gerados
-test/
-├── unit/  widget/  golden/
-integration_test/
+apps/
+├── buyer/                          # app do comprador — pubspec.yaml próprio
+│   └── lib/
+│       ├── main.dart / main_{dev,staging,prod}.dart
+│       ├── bootstrap.dart          # runZonedGuarded, error handlers, ProviderScope
+│       ├── app/
+│       │   ├── app.dart            # MaterialApp.router
+│       │   ├── router/             # go_router, rotas, guards, transições
+│       │   └── di/                 # providers globais (dio, storage, env)
+│       ├── features/
+│       │   └── <feature>/
+│       │       ├── domain/    (entities, repositories, usecases)
+│       │       ├── data/      (dtos, datasources, repositories_impl, mappers)
+│       │       └── presentation/ (pages, widgets, controllers, state)
+│       └── l10n/                   # arb + gerados
+└── vendor/                         # app do fornecedor — mesma estrutura acima
+
+packages/
+├── core/                           # happfest_core — pacote Flutter, path dependency dos apps
+│   └── lib/core/
+│       ├── config/                 # Env (dart-define), flavors, constantes
+│       ├── network/                # DioClient, interceptors, ApiException
+│       ├── error/                  # Failure, Result, mapeamento de erros
+│       ├── storage/                # secure storage, cache
+│       ├── utils/                  # extensions, formatters (data, moeda, doc)
+│       └── logging/
+└── design_system/                  # happfest_design_system — ⚠️ ver seção 3
+    └── lib/design_system/
+        ├── tokens/                 # cores, espaçamento, raio, sombra, tipografia, duração
+        ├── theme/                  # AppTheme light/dark, ThemeExtensions
+        ├── components/             # AppButton, AppTextField, AppCard, AppDialog...
+        ├── feedback/                # snackbars, toasts, loading overlay, empty/error states
+        └── layout/                  # responsividade, breakpoints, AppScaffold, grids
 ```
 
-Uma feature nunca importa `presentation/` de outra feature. Compartilhamento acontece via `core/` ou `design_system/`.
+Cada app importa `core/` e `design_system/` como `package:happfest_core/...` e
+`package:happfest_design_system/...` (path dependency em `pubspec.yaml`, sem
+Melos por enquanto). Uma feature nunca importa `presentation/` de outra
+feature nem de outro app. Compartilhamento entre `apps/buyer` e
+`apps/vendor` só acontece via `packages/core` ou `packages/design_system` —
+se os dois times de feature precisarem do mesmo código de domínio (ex.:
+autenticação), isso é decisão explícita de promover código para lá, não
+faça por padrão.
 
 ---
 

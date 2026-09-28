@@ -8,11 +8,23 @@ on:
 jobs:
   analyze-and-test:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        project:
+          - packages/core
+          - packages/design_system
+          - apps/buyer
+          - apps/vendor
+    defaults:
+      run:
+        working-directory: ${{ matrix.project }}
     steps:
       - uses: actions/checkout@v4
 
       - uses: kuhnroyal/flutter-fvm-config-action@v3
         id: fvm-config-action
+        with:
+          path: ${{ matrix.project }}/.fvmrc
 
       - uses: subosito/flutter-action@v2
         with:
@@ -24,6 +36,7 @@ jobs:
         run: flutter pub get
 
       - name: Generate code (freezed/json_serializable/go_router)
+        if: startsWith(matrix.project, 'apps/')
         run: dart run build_runner build --delete-conflicting-outputs
 
       - name: Verify formatting
