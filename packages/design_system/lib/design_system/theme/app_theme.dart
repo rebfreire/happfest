@@ -11,13 +11,28 @@ abstract final class AppTheme {
 
   static ThemeData _build({required Brightness brightness}) {
     final isDark = brightness == Brightness.dark;
-    final colorScheme = ColorScheme.fromSeed(
-      seedColor: AppColors.primary,
-      secondary: AppColors.secondary,
-      tertiary: AppColors.accent,
-      error: AppColors.dangerStrong,
-      brightness: brightness,
-    );
+    // `ColorScheme.fromSeed` gera tons derivados algoritmicamente e não
+    // preserva a cor exata da marca (ela vira um tom dessaturado/mais
+    // escuro do rosa da marca) — os tokens em `AppColors` já são as cores
+    // reais extraídas do site em produção, então sobrescrevemos os papéis
+    // de marca no scheme gerado em vez de confiar no tom derivado.
+    final colorScheme =
+        ColorScheme.fromSeed(
+          seedColor: AppColors.primary,
+          brightness: brightness,
+        ).copyWith(
+          primary: AppColors.primary,
+          onPrimary: AppColors.onPrimary,
+          secondary: AppColors.secondary,
+          onSecondary: AppColors.onPrimary,
+          tertiary: AppColors.accent,
+          onTertiary: AppColors.surface900,
+          error: AppColors.dangerStrong,
+          onError: AppColors.onPrimary,
+          surface: isDark ? AppColors.surface900 : AppColors.surface0,
+          onSurface: isDark ? AppColors.surface0 : AppColors.textPrimary,
+          outline: AppColors.outline,
+        );
 
     return ThemeData(
       useMaterial3: true,

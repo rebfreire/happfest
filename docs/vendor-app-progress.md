@@ -146,6 +146,39 @@ Testes: 6 unit (usecases) + 5 widget (`OrdersPage` sucesso/vazio/erro,
     fonte continua sendo editado/commitado normalmente na pasta do
     Drive, só o **build de iOS** precisa rodar fora dela. Builds web e
     Android não tiveram esse problema.
+11. **`ColorScheme.fromSeed` (Material 3) não preserva a cor exata da
+    marca** — o rosa `AppColors.primary` (`#FF3F81`, extraído ao vivo do
+    site em produção) virava um tom dessaturado/mais escuro (tipo vinho)
+    quando usado só como `seedColor`. Isso afetava **os dois apps**
+    igualmente (o tema é 100% compartilhado via `packages/design_system`),
+    não era um problema exclusivo do vendor. Corrigido em
+    `design_system/theme/app_theme.dart`: gera o `ColorScheme` via
+    `fromSeed` (pra manter os tons derivados de superfície/contraste) e
+    depois sobrescreve `primary/onPrimary/secondary/onSecondary/tertiary/
+    onTertiary/error/onError/surface/onSurface/outline` com os valores
+    exatos de `AppColors`. Qualquer novo token de cor de marca deve seguir
+    o mesmo padrão — não confiar no tom que o `fromSeed` calcula.
+12. **`apps/vendor/assets/images/` não existia** — o logo (`happ_logo.svg`)
+    só tinha sido copiado pro `apps/buyer` na fase 0. Copiado pro vendor,
+    declarado em `assets:` no `pubspec.yaml`, e adicionado ao topo da
+    `LoginPage` dos dois apps (`SvgPicture.asset`, `flutter_svg` já era
+    dependência dos dois). Se criar um novo app no monorepo, lembrar de
+    copiar `assets/images/` também — não é promovido automaticamente só
+    por estar no `packages/design_system`.
+13. **Repositório git corrompeu sozinho** (`.git/objects/pack/*.pack`
+    truncado, "far too short to be a packfile") rodando dentro da pasta
+    sincronizada pelo Google Drive — o cliente do Drive não lida bem com
+    a forma como o git escreve pack files (provavelmente interrompeu uma
+    escrita no meio). O remoto no GitHub estava íntegro. Recuperado sem
+    perder nada: `mv .git .git.corrupt-backup-<ts>` (guardado, não
+    deletado), `git init`, `git remote add origin ...`, `git fetch
+    origin`, `git symbolic-ref HEAD refs/heads/<branch>`, `git reset
+    origin/<branch>` (reset **não** `--hard` — reseta o índice pro commit
+    remoto sem tocar na árvore de trabalho, preservando qualquer edição
+    não commitada). Se isso acontecer de novo: **não** rodar `git gc`/
+    `git repack` às cegas (pode escrever por cima de coisa boa); primeiro
+    `git fsck --full` pra confirmar o que está corrompido, e comparar com
+    o remoto antes de decidir a estratégia de recuperação.
 
 ## Endpoints já mapeados por feature futura (do `docs/api/openapi.json`)
 
