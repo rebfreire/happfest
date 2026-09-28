@@ -128,6 +128,24 @@ Testes: 6 unit (usecases) + 5 widget (`OrdersPage` sucesso/vazio/erro,
 8. **`/sub-orders/{id}/complete` e `/contest` são ações do comprador**,
    não do fornecedor — não adicionar essas ações no app vendor (ver
    seção "Pedidos" acima).
+9. **`IPHONEOS_DEPLOYMENT_TARGET` gerado pelo `flutter create` era 13.0**
+   em ambos os apps (buyer e vendor), mas o Firebase (crashlytics/core/
+   analytics via SPM) exige mínimo 15.0 — e o `AGENTS.md` seção 0 já pede
+   iOS 15+ como mínimo suportado. Build pro simulador falhava com "Target
+   Integrity" até subir pra 15.0 nas 3 ocorrências de cada
+   `ios/Runner.xcodeproj/project.pbxproj`. Corrigido nos dois apps.
+10. **Rodar `flutter build ios`/`flutter run` direto na pasta do projeto
+    (que fica dentro do Google Drive, em
+    `.../GoogleDrive-.../My Drive/...`) quebra o codesign** — erro
+    "resource fork, Finder information, or similar detritus not allowed"
+    no `Flutter.framework`, porque o cliente do Drive reintroduz
+    metadados/xattrs durante o build. **Solução**: copiar o monorepo pra
+    um diretório local fora do Drive (ex.: no `scratchpad` da sessão, via
+    `rsync -a --exclude .git --exclude '**/build/' --exclude
+    '**/.dart_tool/' --exclude '**/ios/Pods/'`) e buildar lá; o código
+    fonte continua sendo editado/commitado normalmente na pasta do
+    Drive, só o **build de iOS** precisa rodar fora dela. Builds web e
+    Android não tiveram esse problema.
 
 ## Endpoints já mapeados por feature futura (do `docs/api/openapi.json`)
 
