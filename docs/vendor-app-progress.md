@@ -91,6 +91,42 @@ pendentes, e os itens da lista de pendentes agora navegam pro detalhe.
 Testes: 6 unit (usecases) + 5 widget (`OrdersPage` sucesso/vazio/erro,
 `OrderDetailPage` ações + aceitar com sucesso/erro). Tudo verde.
 
+### 6. Produtos (feito — fatia inicial)
+`lib/features/products/` — Clean Architecture completa, mas **escopo
+reduzido de propósito** (mesma lógica do que foi feito em Pedidos):
+listar, ver detalhe, publicar/pausar e destacar/remover destaque.
+**Criar/editar produto fica para uma próxima iteração** — o
+`ProductRequest`/`ProductUpdateRequest` da API exigem `categoryId`
+obrigatório, e selecionar categoria é um fluxo próprio (árvore de
+categorias do marketplace, não é dado do fornecedor) que merece feature
+dedicada, não algo encaixado aqui.
+
+- `domain/entities`: `Product` (detalhe completo — `ProductResponse`),
+  `ProductListItem` (item leve da listagem — `ProductMeListItem`),
+  `ProductAttributeValue`, `ProductStatus` (draft/published/paused/
+  archived), `ProductType` (physical/service), `PricingUnitType` (13
+  unidades: un/pct/cx/kit/g/kg/l/gal/m/cm/hora/dia/sessao).
+- `domain/repositories` + 4 usecases: `ListMyProductsUseCase`,
+  `GetProductDetailUseCase`, `SetProductStatusUseCase`,
+  `SetProductFeaturedUseCase`.
+- `data`: DTOs de `GET /products/me` (paginado, filtro `status` — **não**
+  usa `/products/stores/{storeId}`, que é só para criar), `GET
+  /products/{id}`, `PATCH /products/{id}/status`, `PATCH
+  /products/{id}/featured`.
+- `presentation`: `ProductsPage` (lista com filtro por status via chips,
+  mesmo padrão de `OrdersPage`) + `ProductDetailPage` (info, preço,
+  atributos, ação Publicar/Pausar conforme status, ação de destaque).
+  Link "Meus produtos" adicionado no Dashboard (`AppCard` navegando pra
+  `/products` — sem fetch próprio, só navegação).
+
+Testes: 4 unit (usecases) + 6 widget (`ProductsPage` sucesso/vazio/erro,
+`ProductDetailPage` ação de publicar sucesso/erro + estado inicial).
+Tudo verde.
+
+Testado visualmente no simulador iOS (ver achado #10 sobre build fora do
+Drive) — falta ainda testar com dado real de fornecedor (usuário de
+teste pendente, ver seção de pendências no início da conversa).
+
 ## Achados / armadilhas (não repetir)
 
 1. **`AppLoading.skeleton()` é um `ListView` internamente.** Nunca usar
@@ -205,13 +241,27 @@ Testes: 6 unit (usecases) + 5 widget (`OrdersPage` sucesso/vazio/erro,
 1. ~~Login~~ ✅
 2. ~~Dashboard~~ ✅
 3. ~~Pedidos (orders)~~ ✅
-4. **Produtos (catálogo, CRUD, variantes, fotos)** ← próximo
-5. Agenda
+4. ~~Produtos (fatia inicial: listar/ver/publicar/destacar)~~ ✅
+5. **Agenda** ← próximo
 6. Documentos
 7. Perfil / métricas (tela dedicada, hoje só aparece resumida no
    dashboard)
 8. Chat (por sub-pedido)
 9. Notificações
+
+**Backlog dentro de Produtos** (não é a próxima feature da fila — só
+completar quando o time de produto priorizar):
+- Criar/editar produto (precisa de um seletor de categoria — fluxo
+  próprio, ver árvore de categorias do marketplace).
+- Variantes, imagens, promoções, perguntas, reviews — endpoints já
+  mapeados abaixo, nenhum implementado ainda.
+
+**Backlog transversal**: `OrdersPage`/`OrderDetailPage` e agora
+`ProductsPage`/`ProductDetailPage` usam strings em pt-BR direto no
+código (não foram pro ARB) — mesmo padrão nos dois, mas quebra a regra
+"zero string hardcoded" do AGENTS.md seção 10. Vale uma passada dedicada
+de extração pra ARB cobrindo as duas features de uma vez, em vez de
+misturar com a próxima feature nova.
 
 Cada item = 1 commit (ou mais) na mesma branch/PR, seguindo
 `domain → data → presentation → teste` (AGENTS.md seção 14-15). Rodar

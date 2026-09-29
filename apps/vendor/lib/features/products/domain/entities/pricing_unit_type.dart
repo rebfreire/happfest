@@ -1,0 +1,15 @@
+enum PricingUnitType {
+  un,
+  pct,
+  cx,
+  kit,
+  g,
+  kg,
+  l,
+  gal,
+  m,
+  cm,
+  hora,
+  dia,
+  sessao,
+}

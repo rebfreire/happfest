@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:happfest_core/core/error/failure.dart';
 import 'package:happfest_core/core/error/result.dart';
 import 'package:happfest_design_system/design_system/components/app_button.dart';
+import 'package:happfest_design_system/design_system/components/app_card.dart';
 import 'package:happfest_design_system/design_system/components/app_scaffold.dart';
 import 'package:happfest_design_system/design_system/feedback/app_empty_state.dart';
 import 'package:happfest_design_system/design_system/feedback/app_error_state.dart';
@@ -35,6 +36,8 @@ class DashboardPage extends ConsumerWidget {
           _ProfileHeader(),
           SizedBox(height: AppSpacing.md),
           _MetricsSection(),
+          SizedBox(height: AppSpacing.lg),
+          _ProductsLink(),
           SizedBox(height: AppSpacing.lg),
           _PendingOrdersSection(),
         ],
@@ -90,6 +93,24 @@ class _MetricsSection extends ConsumerWidget {
           onRetry: () => ref.invalidate(supplierMetricsProvider),
         ),
       },
+    );
+  }
+}
+
+class _ProductsLink extends StatelessWidget {
+  const _ProductsLink();
+
+  @override
+  Widget build(BuildContext context) {
+    return AppCard(
+      onTap: () => context.push('/products'),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text('Meus produtos', style: Theme.of(context).textTheme.titleMedium),
+          const Icon(Icons.chevron_right),
+        ],
+      ),
     );
   }
 }
