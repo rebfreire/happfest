@@ -248,11 +248,13 @@ teste pendente, ver seção de pendências no início da conversa).
    dashboard)
 8. Chat (por sub-pedido)
 9. Notificações
+10. **Criar/editar produto** (fechar o backlog de Produtos — combinado
+    com o usuário em 2026-09-28: fazer isso assim que o restante da
+    sequência acima estiver pronto, não antes). Precisa de um seletor de
+    categoria — fluxo próprio, ver árvore de categorias do marketplace.
 
-**Backlog dentro de Produtos** (não é a próxima feature da fila — só
-completar quando o time de produto priorizar):
-- Criar/editar produto (precisa de um seletor de categoria — fluxo
-  próprio, ver árvore de categorias do marketplace).
+**Backlog dentro de Produtos** (item 10 acima cobre o criar/editar; o
+resto abaixo continua sem data definida):
 - Variantes, imagens, promoções, perguntas, reviews — endpoints já
   mapeados abaixo, nenhum implementado ainda.
 
