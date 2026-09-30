@@ -28,7 +28,7 @@ class _FakeAuthRepository implements AuthRepository {
   }
 
   @override
-  Future<Result<AuthSession>> signup({
+  Future<Result<void>> signup({
     required String name,
     required String email,
     required String password,
@@ -43,7 +43,7 @@ class _FakeAuthRepository implements AuthRepository {
     required int stateCodigoUf,
     required String zipCode,
     String? complement,
-  }) async => result;
+  }) async => throw UnimplementedError();
 
   @override
   Future<Result<void>> requestPasswordReset(String email) async =>

@@ -161,6 +161,33 @@ class _SignupPageState extends ConsumerState<SignupPage> {
     );
   }
 
+  /// A API exige e-mail verificado antes de permitir login — não há
+  /// auto-login após o cadastro (ver `AuthRepository.signup`). Avisa o
+  /// usuário e manda para o login, de onde ele entra depois de confirmar
+  /// o e-mail.
+  Future<void> _showAccountCreatedDialog() async {
+    final email = _emailController.text.trim();
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: const Text('Conta criada!'),
+        content: Text(
+          'Enviamos um e-mail de confirmação para $email. Verifique sua '
+          'caixa de entrada e confirme antes de entrar.',
+        ),
+        actions: [
+          AppButton.confirm(
+            label: 'Ir para o login',
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ],
+      ),
+    );
+    if (!mounted) return;
+    context.go('/login', extra: widget.returnTo);
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(signupControllerProvider);
@@ -169,7 +196,7 @@ class _SignupPageState extends ConsumerState<SignupPage> {
     ref.listen(signupControllerProvider, (previous, next) {
       switch (next) {
         case SignupSuccess():
-          context.go(widget.returnTo ?? '/');
+          unawaited(_showAccountCreatedDialog());
         case SignupFailure(:final failure):
           AppSnackbar.error(context, failure.message);
         case SignupIdle():

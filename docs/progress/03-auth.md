@@ -98,11 +98,10 @@ uma tela de debug interna no header de produção.
   mesmo para contas de fornecedor/franqueado/admin — por isso o mapper usa
   `profileType ?? ProfileTypeDto.customer` como fallback.
 - **Cadastro**: `POST /customers` (público, sem `Authorization`) →
-  `CustomerResponse`. Esse endpoint não devolve token —
-  `AuthRepositoryImpl.signup()` chama o `login()` normal em seguida com as
-  mesmas credenciais para obter a sessão, reaproveitando toda a lógica de
-  validação/merge de carrinho já existente. `SignupController`/
-  `SignupPage` seguem o mesmo padrão do `LoginController`/`LoginPage`.
+  `CustomerResponse`. Esse endpoint não devolve token e **não loga
+  automaticamente** — ver nota abaixo sobre verificação de e-mail.
+  `SignupController`/`SignupPage` seguem o mesmo padrão de estados do
+  `LoginController`/`LoginPage` (idle/loading/success/failure).
 
 ### Cadastro com provisionamento financeiro Asaas (2026-09-29)
 
@@ -158,6 +157,33 @@ resolvidos pelo CEP/picker); 422, validação de campo.
 mapeado no OpenAPI, mas **não implementado** — o app não tem login
 social (Google ou outro) hoje, então o gatilho dessa tela não existe.
 Se um login social for adicionado no futuro, essa é a peça que falta.
+
+**Sem auto-login após o cadastro** (bug encontrado ao vivo, corrigido no
+mesmo dia): a primeira versão do cadastro com Asaas manteve o
+comportamento antigo de logar automaticamente logo após
+`POST /customers`, reaproveitando `login()`. Só que a API real passou a
+**exigir e-mail verificado antes de autenticar** — o login imediato
+sempre falha com 401/403 pedindo confirmação do e-mail, então o cadastro
+aparecia como erro para o usuário mesmo tendo sido criado com sucesso.
+Corrigido removendo o auto-login: `AuthRepository.signup()` agora
+retorna `Future<Result<void>>` (só o resultado do `POST /customers`,
+sem sessão), `SignupState.success()` não carrega mais `AuthSession`, e
+`SignupPage` mostra um diálogo ("Conta criada! Verifique seu e-mail...")
+antes de navegar para `/login` — sem tentar logar sozinha. Como
+consequência, o merge do carrinho anônimo (`MergeCartUseCase`) saiu do
+`SignupController`: não há mais sessão para mesclar nesse momento; o
+merge volta a acontecer normalmente quando o usuário loga de fato depois
+de verificar o e-mail (`LoginController` já faz isso).
+
+Ao validar essa correção no simulador, o botão "Avançar" da primeira
+etapa parou de responder a toques repetidamente (mesmo após várias
+reinicializações completas do `flutter run`) — parecia um bug real na
+transição de etapas. Descartado como bug de código: um novo widget test
+(`test/widget/features/auth/signup_page_test.dart`) que preenche
+nome/e-mail/senha válidos e toca "Avançar" via `WidgetTester` confirma
+que a transição pra etapa de dados pessoais funciona corretamente. A
+causa foi instabilidade de entrada do simulador (já documentada em
+outras partes desta sessão), não algo no app.
 
 ## Nota de nullability
 

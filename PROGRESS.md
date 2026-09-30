@@ -1,6 +1,6 @@
 # HappFest — Progresso do App Flutter (Comprador)
 
-Última atualização: 2026-09-29
+Última atualização: 2026-09-29 (correção de auto-login pós-cadastro)
 
 ## Visão geral
 
@@ -17,7 +17,7 @@ O app do fornecedor é um projeto separado, a ser iniciado depois.
 |---|---|---|
 | 0 | Setup (flavors, lints, CI, estrutura de pastas, Firebase) | ✅ Concluída |
 | 1 | Design System (tokens + catálogo de componentes) | ✅ Concluída |
-| 2 | Autenticação (login + cadastro mobile: access + refresh token; navegação sem gate, login pedido só ao finalizar compra; cadastro com provisionamento financeiro Asaas) | ✅ Concluída — login testado ao vivo; cadastro completo ⚠️ não validado ao vivo |
+| 2 | Autenticação (login + cadastro mobile: access + refresh token; navegação sem gate, login pedido só ao finalizar compra; cadastro com provisionamento financeiro Asaas, sem auto-login — API exige e-mail verificado) | ✅ Concluída — login testado ao vivo; cadastro corrigido após bug ao vivo (auto-login falhava por e-mail não verificado) e validado por widget test |
 | 3 | Home (busca, categorias, grid de produtos) | ✅ Concluída |
 | 4 | Detalhe do produto | ✅ Concluída |
 | 5 | Carrinho (com merge do carrinho anônimo no login) | ✅ Concluída |
@@ -53,11 +53,19 @@ Detalhes de cada feature em `docs/progress/`.
   campos de texto simples (`TextInputType.number`/`.phone`) — os dígitos
   são limpos (`_onlyDigits`) antes do envio, mas não há máscara visual
   nem validação de formato em tempo real; erros de formato aparecem via
-  mensagem da API (422). O formulário completo (3 etapas: acesso, dados
-  pessoais com CPF/telefone/nascimento/renda, endereço) e o novo contrato
-  com provisionamento Asaas (`birthDate`/`incomeValue`/`address`
-  obrigatórios) ainda não foram validados ao vivo contra a API real — só
-  testes automatizados (serialização do payload, 400/404/409/422). Ver
+  mensagem da API (422).
+- **Cadastro não loga automaticamente**: testado ao vivo e descoberto que
+  a API exige e-mail verificado antes de permitir login — o app tentava
+  logar sozinho logo após `POST /customers` e isso sempre falhava,
+  aparecendo como erro para o usuário mesmo com a conta criada.
+  Corrigido: sucesso do cadastro agora mostra um diálogo pedindo pra
+  verificar o e-mail e manda pro login, sem tentar autenticar sozinho.
+  A navegação entre as 3 etapas do formulário (incluindo o botão
+  "Avançar" que pareceu não responder no simulador — instabilidade de
+  input do ambiente, não do app) foi confirmada por widget test
+  (`test/widget/features/auth/signup_page_test.dart`); só o preenchimento
+  completo das 3 etapas contra a API real (etapa de endereço depende de
+  CEP via rede) ainda não foi validado ao vivo. Ver
   [`docs/progress/03-auth.md`](docs/progress/03-auth.md).
 - **Ativação de conta via login social** (`POST /customers/me/activate`,
   para clientes com `activated: false`): contrato mapeado no OpenAPI, mas

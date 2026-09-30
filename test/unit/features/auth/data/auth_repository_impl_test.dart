@@ -139,27 +139,11 @@ void main() {
   group('signup', () {
     test(
       'sends the full CustomerRequest payload required by the Asaas '
-      'sub-account provisioning (birthDate, incomeValue, address), then '
-      'logs in with the same credentials',
+      'sub-account provisioning (birthDate, incomeValue, address) — no '
+      'auto-login: the API requires e-mail verification first',
       () async {
         when(
           () => remoteDataSource.signup(any()),
-        ).thenAnswer((_) async {});
-        when(
-          () => remoteDataSource.login(any()),
-        ).thenAnswer(
-          (_) async => const LoginResponseDto(
-            accessToken: 'access-123',
-            refreshToken: 'refresh-123',
-            userId: 'user-1',
-            profileType: ProfileTypeDto.customer,
-          ),
-        );
-        when(
-          () => tokenStorage.saveTokens(
-            accessToken: any(named: 'accessToken'),
-            refreshToken: any(named: 'refreshToken'),
-          ),
         ).thenAnswer((_) async {});
 
         final result = await repository.signup(
@@ -179,7 +163,7 @@ void main() {
           zipCode: '01001000',
         );
 
-        expect(result, isA<Ok<dynamic>>());
+        expect(result, const Ok<void>(null));
         final captured = verify(
           () => remoteDataSource.signup(captureAny()),
         ).captured;
@@ -202,6 +186,13 @@ void main() {
             'zipCode': '01001000',
           },
         });
+        verifyNever(() => remoteDataSource.login(any()));
+        verifyNever(
+          () => tokenStorage.saveTokens(
+            accessToken: any(named: 'accessToken'),
+            refreshToken: any(named: 'refreshToken'),
+          ),
+        );
       },
     );
 
@@ -210,20 +201,6 @@ void main() {
       'convention already used by CustomerAddressRequestDto',
       () async {
         when(() => remoteDataSource.signup(any())).thenAnswer((_) async {});
-        when(() => remoteDataSource.login(any())).thenAnswer(
-          (_) async => const LoginResponseDto(
-            accessToken: 'access-123',
-            refreshToken: 'refresh-123',
-            userId: 'user-1',
-            profileType: ProfileTypeDto.customer,
-          ),
-        );
-        when(
-          () => tokenStorage.saveTokens(
-            accessToken: any(named: 'accessToken'),
-            refreshToken: any(named: 'refreshToken'),
-          ),
-        ).thenAnswer((_) async {});
 
         await repository.signup(
           name: 'Maria',

@@ -7,12 +7,13 @@ abstract interface class AuthRepository {
     required String password,
   });
 
-  /// `POST /customers` seguido de login automático com as mesmas
-  /// credenciais — o cadastro em si não retorna tokens. Desde que o
-  /// backend provisiona automaticamente uma subconta financeira Asaas por
-  /// cliente, todos os campos são obrigatórios: sem eles a API rejeita o
-  /// cadastro com 422.
-  Future<Result<AuthSession>> signup({
+  /// `POST /customers` — não retorna tokens nem permite login imediato: a
+  /// API exige verificação de e-mail antes de autenticar (um login logo
+  /// após o cadastro falha com 401/403 pedindo a verificação), então não
+  /// há auto-login aqui. Desde que o backend provisiona automaticamente
+  /// uma subconta financeira Asaas por cliente, todos os campos são
+  /// obrigatórios: sem eles a API rejeita o cadastro com 422.
+  Future<Result<void>> signup({
     required String name,
     required String email,
     required String password,

@@ -1,5 +1,4 @@
 import 'package:happfest/core/error/result.dart';
-import 'package:happfest/features/auth/domain/entities/auth_session.dart';
 import 'package:happfest/features/auth/domain/repositories/auth_repository.dart';
 
 class SignupUseCase {
@@ -7,7 +6,7 @@ class SignupUseCase {
 
   final AuthRepository _repository;
 
-  Future<Result<AuthSession>> call({
+  Future<Result<void>> call({
     required String name,
     required String email,
     required String password,

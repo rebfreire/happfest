@@ -54,7 +54,7 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<Result<AuthSession>> signup({
+  Future<Result<void>> signup({
     required String name,
     required String email,
     required String password,
@@ -91,12 +91,10 @@ class AuthRepositoryImpl implements AuthRepository {
           ),
         ),
       );
+      return const Ok(null);
     } on DioException catch (exception) {
       return Err(_failureOf(exception));
     }
-    // O cadastro não retorna tokens — loga em seguida com as mesmas
-    // credenciais para obter a sessão, igual ao fluxo normal de login.
-    return login(email: email, password: password);
   }
 
   @override
