@@ -1,6 +1,6 @@
 # HappFest — Progresso do App Flutter (Comprador)
 
-Última atualização: 2026-09-25
+Última atualização: 2026-09-29
 
 ## Visão geral
 
@@ -17,7 +17,7 @@ O app do fornecedor é um projeto separado, a ser iniciado depois.
 |---|---|---|
 | 0 | Setup (flavors, lints, CI, estrutura de pastas, Firebase) | ✅ Concluída |
 | 1 | Design System (tokens + catálogo de componentes) | ✅ Concluída |
-| 2 | Autenticação (login + cadastro mobile: access + refresh token; navegação sem gate, login pedido só ao finalizar compra) | ✅ Concluída — testada com login real |
+| 2 | Autenticação (login + cadastro mobile: access + refresh token; navegação sem gate, login pedido só ao finalizar compra; cadastro com provisionamento financeiro Asaas) | ✅ Concluída — login testado ao vivo; cadastro completo ⚠️ não validado ao vivo |
 | 3 | Home (busca, categorias, grid de produtos) | ✅ Concluída |
 | 4 | Detalhe do produto | ✅ Concluída |
 | 5 | Carrinho (com merge do carrinho anônimo no login) | ✅ Concluída |
@@ -49,11 +49,20 @@ Detalhes de cada feature em `docs/progress/`.
   têm UI — o checkout sempre finaliza o carrinho inteiro sem usar saldo.
 - **Editar endereço**: só criar/excluir/definir padrão têm UI — falta o
   `PUT /customers/me/addresses/{id}`.
-- **Cadastro (`/cadastro`) sem máscara/validação client-side**: CPF e
-  telefone são campos de texto simples (`TextInputType.number`/`.phone`),
-  sem formatação nem validação de dígitos antes de enviar — erros de
-  formato só aparecem via mensagem de erro da API (422). Fluxo ainda não
-  validado ao vivo. Ver [`docs/progress/03-auth.md`](docs/progress/03-auth.md).
+- **Cadastro (`/cadastro`) sem máscara de input**: CPF, telefone e CEP são
+  campos de texto simples (`TextInputType.number`/`.phone`) — os dígitos
+  são limpos (`_onlyDigits`) antes do envio, mas não há máscara visual
+  nem validação de formato em tempo real; erros de formato aparecem via
+  mensagem da API (422). O formulário completo (3 etapas: acesso, dados
+  pessoais com CPF/telefone/nascimento/renda, endereço) e o novo contrato
+  com provisionamento Asaas (`birthDate`/`incomeValue`/`address`
+  obrigatórios) ainda não foram validados ao vivo contra a API real — só
+  testes automatizados (serialização do payload, 400/404/409/422). Ver
+  [`docs/progress/03-auth.md`](docs/progress/03-auth.md).
+- **Ativação de conta via login social** (`POST /customers/me/activate`,
+  para clientes com `activated: false`): contrato mapeado no OpenAPI, mas
+  sem UI — o app não tem login social hoje, então não há como chegar
+  nesse estado. Fica pendente para quando o login social for adicionado.
 - **Editar/arquivar festa**: a API não expõe esses endpoints — só
   criar/listar são possíveis no contrato atual.
 - **Contrato da API (`docs/api/openapi.json`) não declara nenhum campo como
@@ -85,9 +94,10 @@ fvm flutter run -d <device-id> --target=lib/main_dev.dart
 
 ## Próximos passos sugeridos
 
-1. Validar ao vivo no simulador: agendar um serviço (disponibilidade real),
-   Checkout de ponta a ponta nos três métodos de pagamento (Pix, Boleto,
-   Cartão via checkout hospedado) e o polling até a confirmação.
+1. Validar ao vivo no simulador: cadastro completo (3 etapas, com
+   provisionamento Asaas) e login/checkout de ponta a ponta nos três
+   métodos de pagamento (Pix, Boleto, Cartão via checkout hospedado) e o
+   polling até a confirmação.
 2. Entrega por loja no checkout (override de endereço/data individual).
 3. Checkout parcial e uso de saldo da carteira (`useBalanceAmount`).
 4. Editar endereço.

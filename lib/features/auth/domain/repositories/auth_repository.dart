@@ -8,13 +8,26 @@ abstract interface class AuthRepository {
   });
 
   /// `POST /customers` seguido de login automático com as mesmas
-  /// credenciais — o cadastro em si não retorna tokens.
+  /// credenciais — o cadastro em si não retorna tokens. Desde que o
+  /// backend provisiona automaticamente uma subconta financeira Asaas por
+  /// cliente, todos os campos são obrigatórios: sem eles a API rejeita o
+  /// cadastro com 422.
   Future<Result<AuthSession>> signup({
     required String name,
     required String email,
     required String password,
     required String cpf,
     required String phone,
+    /// Formato `YYYY-MM-DD`, sem conversão de fuso horário.
+    required String birthDate,
+    required double incomeValue,
+    required String street,
+    required String number,
+    required String neighborhood,
+    required int cityCodigoIbge,
+    required int stateCodigoUf,
+    required String zipCode,
+    String? complement,
   });
 
   /// `POST /auth/recuperar-senha` — envia um e-mail com link de

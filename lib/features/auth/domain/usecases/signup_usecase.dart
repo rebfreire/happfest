@@ -13,6 +13,15 @@ class SignupUseCase {
     required String password,
     required String cpf,
     required String phone,
+    required String birthDate,
+    required double incomeValue,
+    required String street,
+    required String number,
+    required String neighborhood,
+    required int cityCodigoIbge,
+    required int stateCodigoUf,
+    required String zipCode,
+    String? complement,
   }) {
     return _repository.signup(
       name: name,
@@ -20,6 +29,15 @@ class SignupUseCase {
       password: password,
       cpf: cpf,
       phone: phone,
+      birthDate: birthDate,
+      incomeValue: incomeValue,
+      street: street,
+      number: number,
+      neighborhood: neighborhood,
+      cityCodigoIbge: cityCodigoIbge,
+      stateCodigoUf: stateCodigoUf,
+      zipCode: zipCode,
+      complement: complement,
     );
   }
 }

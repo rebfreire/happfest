@@ -33,6 +33,15 @@ class _FakeAuthRepository implements AuthRepository {
     required String password,
     required String cpf,
     required String phone,
+    required String birthDate,
+    required double incomeValue,
+    required String street,
+    required String number,
+    required String neighborhood,
+    required int cityCodigoIbge,
+    required int stateCodigoUf,
+    required String zipCode,
+    String? complement,
   }) async {
     signupCallCount++;
     return result;
@@ -128,6 +137,14 @@ void main() {
             password: '123456',
             cpf: '12345678901',
             phone: '11999999999',
+            birthDate: '1990-05-10',
+            incomeValue: 3500,
+            street: 'Praça da Sé',
+            number: '100',
+            neighborhood: 'Sé',
+            cityCodigoIbge: 3550308,
+            stateCodigoUf: 35,
+            zipCode: '01001000',
           );
 
       expect(
@@ -168,6 +185,14 @@ void main() {
             password: '123456',
             cpf: '12345678901',
             phone: '11999999999',
+            birthDate: '1990-05-10',
+            incomeValue: 3500,
+            street: 'Praça da Sé',
+            number: '100',
+            neighborhood: 'Sé',
+            cityCodigoIbge: 3550308,
+            stateCodigoUf: 35,
+            zipCode: '01001000',
           );
 
       expect(

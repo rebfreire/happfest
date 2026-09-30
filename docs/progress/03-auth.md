@@ -30,6 +30,41 @@ Em todos os casos, `LoginPage`/`SignupPage` recebem `returnTo` (via
 segue pra Home. A tela de login também tem um botão "Criar conta" que
 leva pra `/cadastro`, carregando o mesmo `returnTo`.
 
+Tanto `LoginPage` quanto `SignupPage` chegam sempre via `context.push`
+(nunca são a rota inicial), então o `AppBar` padrão já resolve a seta de
+voltar automática — sem isso, a tela de login era um ponto morto sem
+como cancelar.
+
+## Tela de login (redesenho)
+
+`LoginPage` segue um layout fixo (título/subtítulo/labels — ver
+referência visual usada no redesenho): logo, título ("Entrar"), subtítulo
+("Escolha como deseja entrar na sua conta"), campos de E-mail/Senha com
+label estático acima (não o label flutuante padrão do
+`AppTextField` — por isso `AppTextField(label: '', hint: ...)` com um
+`Text` separado acima), link "Esqueci minha senha", botão "Entrar" e o
+rodapé "Não tem uma conta? Criar conta". Todo texto novo via l10n
+(`loginTitle`, `loginSubtitle`, `loginEmailHint`, `loginPasswordHint`,
+`loginForgotPassword`, `loginNoAccountQuestion`, `loginCreateAccountLink`
+em `app_pt.arb`/`app_en.arb`) — nenhuma string nova hardcoded, conforme
+AGENTS.md.
+
+**Recuperação de senha**: "Esqueci minha senha" abre um diálogo
+(`_ForgotPasswordDialog`, privado em `login_page.dart`) pré-preenchido
+com o e-mail já digitado; ao confirmar, chama
+`RequestPasswordResetUseCase` → `POST /auth/recuperar-senha?email=...`
+(público). Isso cobre só a metade de **solicitar** o e-mail de
+recuperação — a metade de **confirmar** a nova senha
+(`POST /auth/redefinir-senha`, que recebe `{senha, token}`) ainda **não
+está implementada**: exigiria tratar o deep link do e-mail para capturar
+o `token`, o que ficou fora do escopo desta rodada.
+
+## Home
+
+O botão de atalho para a Design System (ícone de paleta, só em
+`kDebugMode`) foi removido do `AppBar` da Home — não fazia sentido expor
+uma tela de debug interna no header de produção.
+
 ## Histórico
 
 1. **Implementação inicial** contra `POST /auth/login` (token único).
@@ -62,13 +97,67 @@ leva pra `/cadastro`, carregando o mesmo `returnTo`.
 - O endpoint mobile sempre cria a sessão no contexto de **comprador**,
   mesmo para contas de fornecedor/franqueado/admin — por isso o mapper usa
   `profileType ?? ProfileTypeDto.customer` como fallback.
-- **Cadastro**: `SignupRequestDto` (`nome`/`email`/`senha`/`cpf`/`phone`) →
-  `POST /customers` (público, sem `Authorization`) → `CustomerResponse`.
-  Esse endpoint não devolve token — `AuthRepositoryImpl.signup()` chama o
-  `login()` normal em seguida com as mesmas credenciais para obter a
-  sessão, reaproveitando toda a lógica de validação/merge de carrinho já
-  existente. `SignupController`/`SignupPage` seguem o mesmo padrão do
-  `LoginController`/`LoginPage`.
+- **Cadastro**: `POST /customers` (público, sem `Authorization`) →
+  `CustomerResponse`. Esse endpoint não devolve token —
+  `AuthRepositoryImpl.signup()` chama o `login()` normal em seguida com as
+  mesmas credenciais para obter a sessão, reaproveitando toda a lógica de
+  validação/merge de carrinho já existente. `SignupController`/
+  `SignupPage` seguem o mesmo padrão do `LoginController`/`LoginPage`.
+
+### Cadastro com provisionamento financeiro Asaas (2026-09-29)
+
+O backend passou a criar automaticamente uma subconta financeira Asaas
+para cada cliente cadastrado, e `POST /customers` (`CustomerRequest`
+em `docs/api/openapi.json`, re-baixado de
+`GET /api/v1/api-docs`) passou a exigir, além de
+`nome`/`email`/`senha`/`cpf`/`phone`:
+
+- `birthDate` (`YYYY-MM-DD`, sem conversão de fuso — formatado na mão em
+  `SignupPage._formatDate`, não via `toIso8601String()`, pra não mudar o
+  dia por causa de UTC).
+- `incomeValue` (número > 0, não string formatada como moeda).
+- `address` (`RegistrationAddressRequestDto`: `street`/`number`/
+  `neighborhood`/`zipCode` obrigatórios, `complement` opcional,
+  `cityCodigoIbge`/`stateCodigoUf` como códigos IBGE numéricos — nunca a
+  sigla do estado).
+
+O app **não fala com a Asaas diretamente e não guarda nenhuma chave
+dela** — só envia os dados completos pro `POST /customers`; o
+provisionamento é 100% responsabilidade do backend depois que o cliente é
+persistido.
+
+**Tela**: `SignupPage` virou um formulário em 3 etapas (dados de acesso →
+dados pessoais → endereço), com indicador de progresso e navegação
+Avançar/Voltar validando cada etapa antes de deixar avançar. O passo de
+endereço reaproveita `CepAddressFields`/`StateCityPicker`
+(`lib/core/location/`) — já existentes pra cadastro de endereço da conta
+— que resolvem `cityCodigoIbge`/`stateCodigoUf` via CEP (ViaCEP) com
+fallback pra seleção manual de estado/cidade (API pública do IBGE); CPF,
+telefone e CEP são enviados só com dígitos (`_onlyDigits` remove
+formatação antes do submit).
+
+**DTOs**: `SignupRequestDto` (agora com `birthDate`/`incomeValue`/
+`address`) e `RegistrationAddressRequestDto` (novo,
+`lib/features/auth/data/dto/`). `SignupRequestDto` foi o primeiro DTO do
+app com um campo aninhado que é ele mesmo um objeto serializável — sem
+`explicit_to_json: true` (configurado globalmente em `build.yaml`, novo
+arquivo), `toJson()` embutia o objeto Dart bruto de `address` em vez do
+mapa serializado. A config é global mas inofensiva para o resto dos DTOs
+(só primitivos) — se um novo DTO aninhado aparecer, já funciona sem
+configuração extra.
+
+**Erros**: os códigos 400/404/409/422 já eram tratados de forma genérica
+pelo `error_mapper.dart` existente (mensagem do `ProblemDetail` da API
+sempre que presente) — sem necessidade de tratamento específico para
+cadastro. 409 cobre e-mail/CPF já cadastrados; 404, cidade/estado não
+encontrados (não deveria acontecer no fluxo normal, já que os códigos vêm
+resolvidos pelo CEP/picker); 422, validação de campo.
+
+**Ativação de conta via login social** (`activated: false` em
+`GET /customers/me/context`, `POST /customers/me/activate`): contrato
+mapeado no OpenAPI, mas **não implementado** — o app não tem login
+social (Google ou outro) hoje, então o gatilho dessa tela não existe.
+Se um login social for adicionado no futuro, essa é a peça que falta.
 
 ## Nota de nullability
 

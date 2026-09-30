@@ -1,0 +1,10 @@
+targets:
+  $default:
+    builders:
+      json_serializable:
+        options:
+          # Necessário para DTOs com campos aninhados que são, eles
+          # próprios, objetos serializáveis (ex.: SignupRequestDto.address)
+          # — sem isso, toJson() embutiria o objeto Dart bruto em vez do
+          # mapa serializado. Não afeta DTOs só com campos primitivos.
+          explicit_to_json: true

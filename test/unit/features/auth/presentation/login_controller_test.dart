@@ -34,6 +34,15 @@ class _FakeAuthRepository implements AuthRepository {
     required String password,
     required String cpf,
     required String phone,
+    required String birthDate,
+    required double incomeValue,
+    required String street,
+    required String number,
+    required String neighborhood,
+    required int cityCodigoIbge,
+    required int stateCodigoUf,
+    required String zipCode,
+    String? complement,
   }) async => result;
 
   @override

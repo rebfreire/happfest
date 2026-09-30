@@ -6,6 +6,7 @@ import 'package:happfest/core/storage/cart_session_storage.dart';
 import 'package:happfest/core/storage/token_storage.dart';
 import 'package:happfest/features/auth/data/datasources/auth_remote_datasource.dart';
 import 'package:happfest/features/auth/data/dto/login_request_dto.dart';
+import 'package:happfest/features/auth/data/dto/registration_address_request_dto.dart';
 import 'package:happfest/features/auth/data/dto/signup_request_dto.dart';
 import 'package:happfest/features/auth/data/mappers/auth_session_mapper.dart';
 import 'package:happfest/features/auth/domain/entities/auth_session.dart';
@@ -59,6 +60,15 @@ class AuthRepositoryImpl implements AuthRepository {
     required String password,
     required String cpf,
     required String phone,
+    required String birthDate,
+    required double incomeValue,
+    required String street,
+    required String number,
+    required String neighborhood,
+    required int cityCodigoIbge,
+    required int stateCodigoUf,
+    required String zipCode,
+    String? complement,
   }) async {
     try {
       await _remoteDataSource.signup(
@@ -68,6 +78,17 @@ class AuthRepositoryImpl implements AuthRepository {
           senha: password,
           cpf: cpf,
           phone: phone,
+          birthDate: birthDate,
+          incomeValue: incomeValue,
+          address: RegistrationAddressRequestDto(
+            street: street,
+            number: number,
+            complement: complement,
+            neighborhood: neighborhood,
+            cityCodigoIbge: cityCodigoIbge,
+            stateCodigoUf: stateCodigoUf,
+            zipCode: zipCode,
+          ),
         ),
       );
     } on DioException catch (exception) {
