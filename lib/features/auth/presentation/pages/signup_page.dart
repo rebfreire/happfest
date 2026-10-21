@@ -124,6 +124,12 @@ class _SignupPageState extends ConsumerState<SignupPage> {
     });
   }
 
+  /// Só permite voltar para etapas anteriores (o avanço continua passando
+  /// pela validação do botão "Avançar").
+  void _goToStep(_SignupStep target) {
+    if (target.index < _step.index) setState(() => _step = target);
+  }
+
   void _goBack() {
     setState(() {
       _step = switch (_step) {
@@ -205,57 +211,86 @@ class _SignupPageState extends ConsumerState<SignupPage> {
       }
     });
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Criar conta'),
-        leading: BackButton(
-          onPressed: _step == _SignupStep.access
-              ? () => context.pop()
-              : _goBack,
+    return PopScope(
+      canPop: _step == _SignupStep.access,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _goBack();
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Criar conta'),
+          leading: BackButton(
+            onPressed: _step == _SignupStep.access
+                ? () => context.pop()
+                : _goBack,
+          ),
         ),
-      ),
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 400),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _StepIndicator(step: _step),
-                  const SizedBox(height: AppSpacing.lg),
-                  switch (_step) {
-                    _SignupStep.access => _buildAccessStep(isLoading),
-                    _SignupStep.personal => _buildPersonalStep(isLoading),
-                    _SignupStep.address => _buildAddressStep(isLoading),
-                  },
-                  const SizedBox(height: AppSpacing.lg),
-                  switch (_step) {
-                    _SignupStep.access => AppButton.confirm(
-                      label: 'Avançar',
-                      onPressed: _isAccessStepValid && !isLoading
-                          ? _goNext
-                          : null,
-                      expanded: true,
+        body: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(AppSpacing.lg),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 400),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _StepIndicator(
+                      step: _step,
+                      onStepTap: isLoading ? null : _goToStep,
                     ),
-                    _SignupStep.personal => AppButton.confirm(
-                      label: 'Avançar',
-                      onPressed: _isPersonalStepValid && !isLoading
-                          ? _goNext
-                          : null,
-                      expanded: true,
-                    ),
-                    _SignupStep.address => AppButton.confirm(
-                      label: 'Criar conta',
-                      isLoading: isLoading,
-                      onPressed: _isAddressStepValid && !isLoading
-                          ? _submit
-                          : null,
-                      expanded: true,
-                    ),
-                  },
-                ],
+                    const SizedBox(height: AppSpacing.lg),
+                    switch (_step) {
+                      _SignupStep.access => _buildAccessStep(isLoading),
+                      _SignupStep.personal => _buildPersonalStep(isLoading),
+                      _SignupStep.address => _buildAddressStep(isLoading),
+                    },
+                    const SizedBox(height: AppSpacing.lg),
+                    switch (_step) {
+                      _SignupStep.access => AppButton.confirm(
+                        label: 'Avançar',
+                        onPressed: _isAccessStepValid && !isLoading
+                            ? _goNext
+                            : null,
+                        expanded: true,
+                      ),
+                      _SignupStep.personal => Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          AppButton.confirm(
+                            label: 'Avançar',
+                            onPressed: _isPersonalStepValid && !isLoading
+                                ? _goNext
+                                : null,
+                            expanded: true,
+                          ),
+                          const SizedBox(height: AppSpacing.sm),
+                          AppButton.cancel(
+                            label: 'Voltar',
+                            onPressed: isLoading ? null : _goBack,
+                          ),
+                        ],
+                      ),
+                      _SignupStep.address => Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          AppButton.confirm(
+                            label: 'Criar conta',
+                            isLoading: isLoading,
+                            onPressed: _isAddressStepValid && !isLoading
+                                ? _submit
+                                : null,
+                            expanded: true,
+                          ),
+                          const SizedBox(height: AppSpacing.sm),
+                          AppButton.cancel(
+                            label: 'Voltar',
+                            onPressed: isLoading ? null : _goBack,
+                          ),
+                        ],
+                      ),
+                    },
+                  ],
+                ),
               ),
             ),
           ),
@@ -327,9 +362,7 @@ class _SignupPageState extends ConsumerState<SignupPage> {
               labelText: 'Data de nascimento',
             ),
             child: Text(
-              _birthDate == null
-                  ? 'Selecionar data'
-                  : _formatDate(_birthDate!),
+              _birthDate == null ? 'Selecionar data' : _formatDate(_birthDate!),
             ),
           ),
         ),
@@ -376,9 +409,10 @@ class _SignupPageState extends ConsumerState<SignupPage> {
 }
 
 class _StepIndicator extends StatelessWidget {
-  const _StepIndicator({required this.step});
+  const _StepIndicator({required this.step, required this.onStepTap});
 
   final _SignupStep step;
+  final ValueChanged<_SignupStep>? onStepTap;
 
   @override
   Widget build(BuildContext context) {
@@ -395,14 +429,23 @@ class _StepIndicator extends StatelessWidget {
                     : Theme.of(context).dividerColor,
               ),
             ),
-          CircleAvatar(
-            radius: 12,
-            backgroundColor: i <= currentIndex
-                ? Theme.of(context).colorScheme.primary
-                : Theme.of(context).dividerColor,
-            child: Text(
-              '${i + 1}',
-              style: const TextStyle(color: Colors.white, fontSize: 12),
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: i < currentIndex && onStepTap != null
+                ? () => onStepTap!(_SignupStep.values[i])
+                : null,
+            child: Padding(
+              padding: const EdgeInsets.all(8),
+              child: CircleAvatar(
+                radius: 12,
+                backgroundColor: i <= currentIndex
+                    ? Theme.of(context).colorScheme.primary
+                    : Theme.of(context).dividerColor,
+                child: Text(
+                  '${i + 1}',
+                  style: const TextStyle(color: Colors.white, fontSize: 12),
+                ),
+              ),
             ),
           ),
         ],

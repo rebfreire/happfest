@@ -144,4 +144,37 @@ void main() {
       expect(stillDisabled.onPressed, isNull);
     },
   );
+
+  testWidgets('can go back to a previous step via Voltar and via the step '
+      'number, keeping what was typed', (tester) async {
+    await tester.pumpWidget(_wrap(_ScriptedAuthRepository(const Ok(null))));
+
+    await tester.enterText(
+      find.widgetWithText(TextField, 'Nome completo'),
+      'Maria Teste',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextField, 'Email'),
+      'maria@example.com',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextField, 'Senha'),
+      'SenhaForte123',
+    );
+    await tester.pump();
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Avançar'));
+    await tester.pump();
+    expect(find.text('CPF'), findsOneWidget);
+
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Voltar'));
+    await tester.pump();
+    expect(find.text('Nome completo'), findsOneWidget);
+    expect(find.text('Maria Teste'), findsOneWidget);
+
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Avançar'));
+    await tester.pump();
+    await tester.tap(find.text('1'));
+    await tester.pump();
+    expect(find.text('Nome completo'), findsOneWidget);
+  });
 }
