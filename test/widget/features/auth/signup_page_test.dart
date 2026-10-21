@@ -177,4 +177,46 @@ void main() {
     await tester.pump();
     expect(find.text('Nome completo'), findsOneWidget);
   });
+
+  testWidgets('step number advances only when previous steps are valid', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_wrap(_ScriptedAuthRepository(const Ok(null))));
+
+    await tester.tap(find.text('2'));
+    await tester.pump();
+    expect(find.text('Nome completo'), findsOneWidget);
+
+    await tester.enterText(
+      find.widgetWithText(TextField, 'Nome completo'),
+      'Maria Teste',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextField, 'Email'),
+      'maria@example.com',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextField, 'Senha'),
+      'SenhaForte123',
+    );
+    await tester.pump();
+    await tester.tap(find.text('2'));
+    await tester.pump();
+    expect(find.text('CPF'), findsOneWidget);
+
+    await tester.enterText(
+      find.widgetWithText(TextField, 'CPF'),
+      '12345678909',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextField, 'Telefone'),
+      '11999999999',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextField, 'Renda mensal'),
+      r'R$ 3.500,00',
+    );
+    await tester.pump();
+    expect(find.text('Informe um valor maior que zero'), findsNothing);
+  });
 }

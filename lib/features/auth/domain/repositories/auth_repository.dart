@@ -19,6 +19,7 @@ abstract interface class AuthRepository {
     required String password,
     required String cpf,
     required String phone,
+
     /// Formato `YYYY-MM-DD`, sem conversão de fuso horário.
     required String birthDate,
     required double incomeValue,

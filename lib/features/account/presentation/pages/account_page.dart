@@ -55,8 +55,7 @@ class AccountPage extends ConsumerWidget {
           ) =>
             AppEmptyState(
               icon: Icons.person_outline,
-              message:
-                  'Faça login para ver seu perfil, endereços e pedidos.',
+              message: 'Faça login para ver seu perfil, endereços e pedidos.',
               actionLabel: 'Fazer login',
               onAction: () => context.push('/login', extra: '/perfil'),
             ),

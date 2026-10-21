@@ -72,6 +72,17 @@ class _SignupPageState extends ConsumerState<SignupPage> {
 
   String _onlyDigits(String value) => value.replaceAll(RegExp('[^0-9]'), '');
 
+  /// Aceita "3500", "3500.50", "3500,50", "3.500,50" e "R$ 3.500,50".
+  double? _parseIncome(String raw) {
+    var text = raw.replaceAll(RegExp('[^0-9.,]'), '');
+    if (text.contains(',')) {
+      text = text.replaceAll('.', '').replaceAll(',', '.');
+    } else if (RegExp(r'\..*\.').hasMatch(text)) {
+      text = text.replaceAll('.', '');
+    }
+    return double.tryParse(text);
+  }
+
   bool get _isAccessStepValid =>
       _nameController.text.trim().isNotEmpty &&
       _emailController.text.trim().contains('@') &&
@@ -80,9 +91,7 @@ class _SignupPageState extends ConsumerState<SignupPage> {
   bool get _isPersonalStepValid {
     final birthDate = _birthDate;
     if (birthDate == null || birthDate.isAfter(DateTime.now())) return false;
-    final income = double.tryParse(
-      _incomeController.text.trim().replaceAll(',', '.'),
-    );
+    final income = _parseIncome(_incomeController.text);
     return _onlyDigits(_cpfController.text).length == 11 &&
         _onlyDigits(_phoneController.text).isNotEmpty &&
         income != null &&
@@ -124,10 +133,17 @@ class _SignupPageState extends ConsumerState<SignupPage> {
     });
   }
 
-  /// Só permite voltar para etapas anteriores (o avanço continua passando
-  /// pela validação do botão "Avançar").
   void _goToStep(_SignupStep target) {
-    if (target.index < _step.index) setState(() => _step = target);
+    if (target.index <= _step.index) {
+      setState(() => _step = target);
+      return;
+    }
+    // Avançar pelo número só é possível se todas as etapas anteriores ao
+    // destino já estiverem válidas.
+    final valid = [_isAccessStepValid, _isPersonalStepValid];
+    if (valid.take(target.index).every((ok) => ok)) {
+      setState(() => _step = target);
+    }
   }
 
   void _goBack() {
@@ -151,9 +167,7 @@ class _SignupPageState extends ConsumerState<SignupPage> {
             cpf: _onlyDigits(_cpfController.text),
             phone: _onlyDigits(_phoneController.text),
             birthDate: _formatDate(_birthDate!),
-            incomeValue: double.parse(
-              _incomeController.text.trim().replaceAll(',', '.'),
-            ),
+            incomeValue: _parseIncome(_incomeController.text)!,
             street: _streetController.text.trim(),
             number: _numberController.text.trim(),
             neighborhood: _neighborhoodController.text.trim(),
@@ -368,7 +382,12 @@ class _SignupPageState extends ConsumerState<SignupPage> {
         ),
         AppTextField(
           label: 'Renda mensal',
-          hint: 'Ex.: 3500.00',
+          hint: 'Ex.: 3500,00',
+          errorText:
+              _incomeController.text.isNotEmpty &&
+                  (_parseIncome(_incomeController.text) ?? 0) <= 0
+              ? 'Informe um valor maior que zero'
+              : null,
           controller: _incomeController,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           textInputAction: TextInputAction.done,
@@ -431,7 +450,7 @@ class _StepIndicator extends StatelessWidget {
             ),
           GestureDetector(
             behavior: HitTestBehavior.opaque,
-            onTap: i < currentIndex && onStepTap != null
+            onTap: i != currentIndex && onStepTap != null
                 ? () => onStepTap!(_SignupStep.values[i])
                 : null,
             child: Padding(

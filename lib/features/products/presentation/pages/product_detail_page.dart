@@ -176,8 +176,7 @@ class _ProductDetailContentState extends ConsumerState<_ProductDetailContent> {
         : null;
 
     final canAddToCart =
-        !_isAddingToCart &&
-        (!_isService || availabilityAsync?.value is Ok);
+        !_isAddingToCart && (!_isService || availabilityAsync?.value is Ok);
 
     return Column(
       children: [

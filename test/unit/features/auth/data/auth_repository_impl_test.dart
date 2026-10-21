@@ -226,43 +226,46 @@ void main() {
       },
     );
 
-    test('propagates 409 (email/CPF already registered) as ConflictFailure', () async {
-      when(() => remoteDataSource.signup(any())).thenThrow(
-        DioException(
-          requestOptions: RequestOptions(path: '/customers'),
-          response: Response(
+    test(
+      'propagates 409 (email/CPF already registered) as ConflictFailure',
+      () async {
+        when(() => remoteDataSource.signup(any())).thenThrow(
+          DioException(
             requestOptions: RequestOptions(path: '/customers'),
-            statusCode: 409,
-            data: {'title': 'Conflito', 'detail': 'E-mail já cadastrado.'},
+            response: Response(
+              requestOptions: RequestOptions(path: '/customers'),
+              statusCode: 409,
+              data: {'title': 'Conflito', 'detail': 'E-mail já cadastrado.'},
+            ),
+            error: const ApiException(
+              ConflictFailure('E-mail já cadastrado.'),
+            ),
           ),
-          error: const ApiException(
-            ConflictFailure('E-mail já cadastrado.'),
-          ),
-        ),
-      );
+        );
 
-      final result = await repository.signup(
-        name: 'Maria',
-        email: 'maria@example.com',
-        password: 'SenhaForte123',
-        cpf: '12345678909',
-        phone: '11999999999',
-        birthDate: '1990-05-10',
-        incomeValue: 3500,
-        street: 'Praça da Sé',
-        number: '100',
-        neighborhood: 'Sé',
-        cityCodigoIbge: 3550308,
-        stateCodigoUf: 35,
-        zipCode: '01001000',
-      );
+        final result = await repository.signup(
+          name: 'Maria',
+          email: 'maria@example.com',
+          password: 'SenhaForte123',
+          cpf: '12345678909',
+          phone: '11999999999',
+          birthDate: '1990-05-10',
+          incomeValue: 3500,
+          street: 'Praça da Sé',
+          number: '100',
+          neighborhood: 'Sé',
+          cityCodigoIbge: 3550308,
+          stateCodigoUf: 35,
+          zipCode: '01001000',
+        );
 
-      expect(result, isA<Err<dynamic>>());
-      expect(
-        (result as Err<dynamic>).failure,
-        const ConflictFailure('E-mail já cadastrado.'),
-      );
-    });
+        expect(result, isA<Err<dynamic>>());
+        expect(
+          (result as Err<dynamic>).failure,
+          const ConflictFailure('E-mail já cadastrado.'),
+        );
+      },
+    );
 
     test(
       'propagates 422 (validation, e.g. missing/invalid field) as '

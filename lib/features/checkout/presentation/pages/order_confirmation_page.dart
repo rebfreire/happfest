@@ -28,8 +28,7 @@ class OrderConfirmationPage extends ConsumerStatefulWidget {
       _OrderConfirmationPageState();
 }
 
-class _OrderConfirmationPageState
-    extends ConsumerState<OrderConfirmationPage> {
+class _OrderConfirmationPageState extends ConsumerState<OrderConfirmationPage> {
   Timer? _pollTimer;
   Payment? _payment;
   var _expired = false;

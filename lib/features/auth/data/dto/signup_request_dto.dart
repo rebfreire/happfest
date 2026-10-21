@@ -18,6 +18,7 @@ abstract class SignupRequestDto with _$SignupRequestDto {
     required String senha,
     required String cpf,
     required String phone,
+
     /// Formato `YYYY-MM-DD`, sem conversão de fuso horário.
     required String birthDate,
     required double incomeValue,
