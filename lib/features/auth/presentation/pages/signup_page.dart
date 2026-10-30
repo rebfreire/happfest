@@ -1,9 +1,12 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:happfest/core/error/failure.dart';
 import 'package:happfest/core/location/cep_address_fields.dart';
+import 'package:happfest/core/utils/digits.dart';
 import 'package:happfest/design_system/components/app_button.dart';
 import 'package:happfest/design_system/components/app_form_layout.dart';
 import 'package:happfest/design_system/components/app_text_field.dart';
@@ -54,6 +57,17 @@ class _SignupPageState extends ConsumerState<SignupPage> {
   int? _cityCodigoIbge;
   int? _stateCodigoUf;
 
+  // Erros de duplicidade devolvidos pela API (409) — mostrados no campo.
+  String? _emailConflict;
+  String? _cpfConflict;
+
+  static const _minimumAge = 18;
+
+  DateTime get _latestBirthDate {
+    final now = DateTime.now();
+    return DateTime(now.year - _minimumAge, now.month, now.day);
+  }
+
   @override
   void dispose() {
     _nameController.dispose();
@@ -70,7 +84,7 @@ class _SignupPageState extends ConsumerState<SignupPage> {
     super.dispose();
   }
 
-  String _onlyDigits(String value) => value.replaceAll(RegExp('[^0-9]'), '');
+  String _onlyDigits(String value) => onlyDigits(value);
 
   /// Aceita "3500", "3500.50", "3500,50", "3.500,50" e "R$ 3.500,50".
   double? _parseIncome(String raw) {
@@ -86,16 +100,18 @@ class _SignupPageState extends ConsumerState<SignupPage> {
   bool get _isAccessStepValid =>
       _nameController.text.trim().isNotEmpty &&
       _emailController.text.trim().contains('@') &&
-      _passwordController.text.length >= 6;
+      _passwordController.text.length >= 6 &&
+      _emailConflict == null;
 
   bool get _isPersonalStepValid {
     final birthDate = _birthDate;
-    if (birthDate == null || birthDate.isAfter(DateTime.now())) return false;
+    if (birthDate == null || birthDate.isAfter(_latestBirthDate)) return false;
     final income = _parseIncome(_incomeController.text);
     return _onlyDigits(_cpfController.text).length == 11 &&
         _onlyDigits(_phoneController.text).isNotEmpty &&
         income != null &&
-        income > 0;
+        income > 0 &&
+        _cpfConflict == null;
   }
 
   bool get _isAddressStepValid =>
@@ -110,17 +126,38 @@ class _SignupPageState extends ConsumerState<SignupPage> {
     final now = DateTime.now();
     final picked = await showDatePicker(
       context: context,
-      initialDate: _birthDate ?? DateTime(now.year - 18, now.month, now.day),
+      initialDate: _birthDate ?? _latestBirthDate,
       firstDate: DateTime(now.year - 120),
-      lastDate: now,
+      lastDate: _latestBirthDate,
       helpText: 'Data de nascimento',
     );
     if (picked != null) setState(() => _birthDate = picked);
   }
 
-  String _formatDate(DateTime date) {
-    String pad2(int n) => n.toString().padLeft(2, '0');
-    return '${date.year}-${pad2(date.month)}-${pad2(date.day)}';
+  static String _pad2(int n) => n.toString().padLeft(2, '0');
+
+  /// Formato da API (ISO, AAAA-MM-DD) — só para envio.
+  String _formatDate(DateTime date) =>
+      '${date.year}-${_pad2(date.month)}-${_pad2(date.day)}';
+
+  /// Formato brasileiro (DD/MM/AAAA) — para exibir na tela.
+  String _displayDate(DateTime date) =>
+      '${_pad2(date.day)}/${_pad2(date.month)}/${date.year}';
+
+  /// A API só valida unicidade de e-mail/CPF no `POST /customers` (409).
+  /// Leva o usuário de volta à etapa do campo duplicado e marca o erro nele.
+  void _handleConflict(Failure failure) {
+    final message = failure.message;
+    final lower = message.toLowerCase();
+    setState(() {
+      if (lower.contains('cpf') || lower.contains('documento')) {
+        _cpfConflict = message;
+        _step = _SignupStep.personal;
+      } else {
+        _emailConflict = message;
+        _step = _SignupStep.access;
+      }
+    });
   }
 
   void _goNext() {
@@ -217,6 +254,9 @@ class _SignupPageState extends ConsumerState<SignupPage> {
       switch (next) {
         case SignupSuccess():
           unawaited(_showAccountCreatedDialog());
+        case SignupFailure(:final failure) when failure is ConflictFailure:
+          _handleConflict(failure);
+          AppSnackbar.error(context, failure.message);
         case SignupFailure(:final failure):
           AppSnackbar.error(context, failure.message);
         case SignupIdle():
@@ -253,11 +293,14 @@ class _SignupPageState extends ConsumerState<SignupPage> {
                       onStepTap: isLoading ? null : _goToStep,
                     ),
                     const SizedBox(height: AppSpacing.lg),
-                    switch (_step) {
-                      _SignupStep.access => _buildAccessStep(isLoading),
-                      _SignupStep.personal => _buildPersonalStep(isLoading),
-                      _SignupStep.address => _buildAddressStep(isLoading),
-                    },
+                    KeyedSubtree(
+                      key: ValueKey(_step),
+                      child: switch (_step) {
+                        _SignupStep.access => _buildAccessStep(isLoading),
+                        _SignupStep.personal => _buildPersonalStep(isLoading),
+                        _SignupStep.address => _buildAddressStep(isLoading),
+                      },
+                    ),
                     const SizedBox(height: AppSpacing.lg),
                     switch (_step) {
                       _SignupStep.access => AppButton.confirm(
@@ -327,11 +370,12 @@ class _SignupPageState extends ConsumerState<SignupPage> {
         AppTextField(
           label: 'Email',
           controller: _emailController,
+          errorText: _emailConflict,
           keyboardType: TextInputType.emailAddress,
           textInputAction: TextInputAction.next,
           autofillHints: const [AutofillHints.email],
           enabled: !isLoading,
-          onChanged: (_) => setState(() {}),
+          onChanged: (_) => setState(() => _emailConflict = null),
         ),
         AppTextField(
           label: 'Senha',
@@ -353,17 +397,22 @@ class _SignupPageState extends ConsumerState<SignupPage> {
         AppTextField(
           label: 'CPF',
           hint: 'Somente números',
+          errorText: _cpfConflict,
           controller: _cpfController,
           keyboardType: TextInputType.number,
+          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+          maxLength: 11,
           textInputAction: TextInputAction.next,
           enabled: !isLoading,
-          onChanged: (_) => setState(() {}),
+          onChanged: (_) => setState(() => _cpfConflict = null),
         ),
         AppTextField(
           label: 'Telefone',
           hint: 'Somente números, com DDD',
           controller: _phoneController,
           keyboardType: TextInputType.phone,
+          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+          maxLength: 11,
           textInputAction: TextInputAction.next,
           autofillHints: const [AutofillHints.telephoneNumber],
           enabled: !isLoading,
@@ -374,9 +423,12 @@ class _SignupPageState extends ConsumerState<SignupPage> {
           child: InputDecorator(
             decoration: const InputDecoration(
               labelText: 'Data de nascimento',
+              helperText: 'É preciso ter 18 anos ou mais',
             ),
             child: Text(
-              _birthDate == null ? 'Selecionar data' : _formatDate(_birthDate!),
+              _birthDate == null
+                  ? 'Selecionar data'
+                  : _displayDate(_birthDate!),
             ),
           ),
         ),
@@ -390,6 +442,10 @@ class _SignupPageState extends ConsumerState<SignupPage> {
               : null,
           controller: _incomeController,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          inputFormatters: [
+            FilteringTextInputFormatter.allow(RegExp('[0-9.,]')),
+          ],
+          maxLength: 13,
           textInputAction: TextInputAction.done,
           enabled: !isLoading,
           onChanged: (_) => setState(() {}),

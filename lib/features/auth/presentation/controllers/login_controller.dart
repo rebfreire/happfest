@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:happfest/core/error/result.dart';
+import 'package:happfest/features/account/presentation/controllers/account_providers.dart';
 import 'package:happfest/features/auth/data/auth_providers.dart';
 import 'package:happfest/features/auth/presentation/controllers/login_state.dart';
 import 'package:happfest/features/cart/data/cart_providers.dart';
@@ -24,6 +25,10 @@ class LoginController extends Notifier<LoginState> {
       // falha aqui não deve impedir o login de ter sucesso.
       await ref.read(mergeCartUseCaseProvider)();
       ref.invalidate(cartProvider);
+      // Perfil e Festas guardam em cache o 401 de antes do login —
+      // `partiesProvider` depende de `accountContextProvider`, então
+      // invalidar o contexto já recarrega as festas também.
+      invalidateAccountScopedProviders(ref);
     }
 
     state = switch (result) {

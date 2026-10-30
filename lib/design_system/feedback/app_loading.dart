@@ -17,7 +17,12 @@ class AppLoading extends StatelessWidget {
     }
 
     final baseColor = Theme.of(context).colorScheme.surfaceContainerHighest;
+    // shrinkWrap + sem scroll próprio: o skeleton é usado tanto como corpo
+    // de tela quanto embutido dentro de outros ListViews (ex.: agenda de
+    // serviço no detalhe do produto), onde a altura não é limitada.
     return ListView.separated(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
       padding: const EdgeInsets.all(AppSpacing.md),
       itemCount: _skeletonLines,
       separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),

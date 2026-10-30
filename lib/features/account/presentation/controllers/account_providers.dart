@@ -20,3 +20,12 @@ final accountOrdersProvider =
     FutureProvider<Result<PagedResponse<OrderSummary>>>((ref) {
       return ref.watch(getOrdersUseCaseProvider)();
     });
+
+/// Descarta tudo que depende da sessão do cliente (perfil, endereços,
+/// pedidos e, por dependência, festas). Chamar após login e logout.
+void invalidateAccountScopedProviders(Ref ref) {
+  ref
+    ..invalidate(accountContextProvider)
+    ..invalidate(accountAddressesProvider)
+    ..invalidate(accountOrdersProvider);
+}

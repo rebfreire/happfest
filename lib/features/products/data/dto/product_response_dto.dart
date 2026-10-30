@@ -52,10 +52,10 @@ enum PricingUnitTypeDto {
   sessao,
 }
 
-/// Corresponde a `ProductResponse` em `docs/api/openapi.json`. Não há um
-/// campo `price` único — o preço é sempre por unidade
-/// (`pricingUnitMin`/`pricingUnitLabel`), consistente com o que a Home e a
-/// tela de detalhe do site mostram (ex.: "R\$400,00 / hora").
+/// Corresponde a `ProductResponse` em `docs/api/openapi.json`. Não há campo
+/// de preço aqui: o preço vem das variantes (`ProductVariantResponse.price`
+/// / `finalPrice`). `pricingUnitMin`/`Max`/`Step` são limites de QUANTIDADE
+/// da unidade de cobrança (ex.: mínimo 1 hora), não valores em R\$.
 @freezed
 abstract class ProductResponseDto with _$ProductResponseDto {
   const factory ProductResponseDto({

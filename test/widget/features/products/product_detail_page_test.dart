@@ -46,8 +46,10 @@ void main() {
       name: 'DJ para Casamentos e Festas',
       storeId: 's1',
       productType: ProductType.service,
+      price: 400,
       pricingUnitLabel: 'hora',
-      pricingUnitMin: 400,
+      // Quantidade mínima (1 hora) — não pode aparecer como preço (BUG-003).
+      pricingUnitMin: 1,
       description: 'DJ profissional com equipamento completo.',
     );
     // A square (1:1) image gallery is taller than the default 800x600 test
@@ -62,6 +64,8 @@ void main() {
     expect(find.text('DJ para Casamentos e Festas'), findsOneWidget);
     expect(find.text('Fests'), findsOneWidget);
     expect(find.text('SERVIÇO'), findsOneWidget);
+    expect(find.textContaining('400,00'), findsOneWidget);
+    expect(find.textContaining('1,00'), findsNothing);
     expect(find.text('por hora'), findsOneWidget);
     expect(find.text('Adicionar ao carrinho'), findsOneWidget);
   });

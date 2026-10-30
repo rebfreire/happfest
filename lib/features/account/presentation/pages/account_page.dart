@@ -28,6 +28,10 @@ class AccountPage extends ConsumerWidget {
 
   Future<void> _logout(BuildContext context, WidgetRef ref) async {
     await ref.read(authRepositoryProvider).logout();
+    ref
+      ..invalidate(accountContextProvider)
+      ..invalidate(accountAddressesProvider)
+      ..invalidate(accountOrdersProvider);
     if (context.mounted) context.go('/');
   }
 

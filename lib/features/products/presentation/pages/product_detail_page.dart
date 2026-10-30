@@ -167,9 +167,6 @@ class _ProductDetailContentState extends ConsumerState<_ProductDetailContent> {
     final detail = widget.detail;
     final storeName = widget.storeName;
     final currency = NumberFormat.currency(locale: 'pt_BR', symbol: r'R$');
-    final hasPriceRange =
-        detail.pricingUnitMax != null &&
-        detail.pricingUnitMax != detail.pricingUnitMin;
 
     final availabilityAsync = _isService
         ? ref.watch(serviceAvailabilityProvider(_availabilityQuery))
@@ -211,15 +208,12 @@ class _ProductDetailContentState extends ConsumerState<_ProductDetailContent> {
                       ),
                     ],
                     const SizedBox(height: AppSpacing.md),
-                    if (detail.pricingUnitMin != null)
+                    if (detail.price != null)
                       Text(
-                        hasPriceRange
-                            ? '${currency.format(detail.pricingUnitMin)} — '
-                                  '${currency.format(detail.pricingUnitMax)}'
-                            : currency.format(detail.pricingUnitMin),
+                        currency.format(detail.price),
                         style: Theme.of(context).textTheme.headlineSmall,
                       ),
-                    if (detail.pricingUnitLabel != null)
+                    if (detail.price != null && detail.pricingUnitLabel != null)
                       Text(
                         'por ${detail.pricingUnitLabel}',
                         style: Theme.of(context).textTheme.bodySmall,
