@@ -7,6 +7,7 @@ class AppScaffold extends StatelessWidget {
     required this.body,
     super.key,
     this.title,
+    this.leading,
     this.actions,
     this.onRefresh,
     this.floatingActionButton,
@@ -15,6 +16,7 @@ class AppScaffold extends StatelessWidget {
 
   final Widget body;
   final String? title;
+  final Widget? leading;
   final List<Widget>? actions;
   final Future<void> Function()? onRefresh;
   final Widget? floatingActionButton;
@@ -31,7 +33,7 @@ class AppScaffold extends StatelessWidget {
     return Scaffold(
       resizeToAvoidBottomInset: resizeToAvoidBottomInset,
       appBar: title != null
-          ? AppBar(title: Text(title!), actions: actions)
+          ? AppBar(title: Text(title!), leading: leading, actions: actions)
           : null,
       body: content,
       floatingActionButton: floatingActionButton,

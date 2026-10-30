@@ -96,9 +96,11 @@ class _CartPageState extends ConsumerState<CartPage> {
           onRetry: () => ref.invalidate(cartProvider),
         ),
         data: (result) => switch (result) {
-          Ok(:final value) when value.items.isEmpty => const AppEmptyState(
+          Ok(:final value) when value.items.isEmpty => AppEmptyState(
             message: 'Seu carrinho está vazio.',
             icon: Icons.shopping_cart_outlined,
+            actionLabel: 'Explorar produtos',
+            onAction: () => context.go('/'),
           ),
           Ok(:final value) => Column(
             children: [

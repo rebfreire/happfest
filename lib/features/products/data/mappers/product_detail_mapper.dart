@@ -25,6 +25,7 @@ extension ProductResponseDtoDetailMapper on ProductResponseDto {
       defaultVariantId: defaultVariant?.id,
       imageUrls: sortedImages.map((image) => image.url).toList(),
       description: description,
+      price: defaultVariant?.finalPrice ?? defaultVariant?.price,
       pricingUnitLabel: pricingUnitLabel,
       pricingUnitMin: pricingUnitMin,
       pricingUnitMax: pricingUnitMax,

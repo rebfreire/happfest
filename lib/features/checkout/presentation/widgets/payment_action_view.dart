@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:happfest/design_system/components/app_button.dart';
@@ -177,6 +178,13 @@ class _HostedRedirectAction extends StatelessWidget {
     final url = action.url;
     final order = orderId;
     if (url == null || order == null) return;
+    // `webview_flutter` não tem implementação para web: lá o checkout
+    // hospedado abre numa nova aba, e esta tela segue consultando o status.
+    if (kIsWeb) {
+      await launchUrl(Uri.parse(url), webOnlyWindowName: '_blank');
+      onReturn?.call();
+      return;
+    }
     await Navigator.of(context).push<void>(
       MaterialPageRoute(
         builder: (_) => HostedCheckoutPage(url: url, orderId: order),

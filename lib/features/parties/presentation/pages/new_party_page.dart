@@ -1,10 +1,12 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:happfest/core/error/result.dart';
 import 'package:happfest/core/location/cep_address_fields.dart';
+import 'package:happfest/core/utils/digits.dart';
 import 'package:happfest/design_system/components/app_button.dart';
 import 'package:happfest/design_system/components/app_form_layout.dart';
 import 'package:happfest/design_system/components/app_scaffold.dart';
@@ -51,17 +53,22 @@ class _NewPartyPageState extends ConsumerState<NewPartyPage> {
     super.dispose();
   }
 
+  int? get _guestCount => int.tryParse(onlyDigits(_guestCountController.text));
+
+  bool get _hasInvalidDateRange =>
+      _startDate != null && _endDate != null && _endDate!.isBefore(_startDate!);
+
   bool get _isValid =>
       _streetController.text.trim().isNotEmpty &&
       _numberController.text.trim().isNotEmpty &&
       _neighborhoodController.text.trim().isNotEmpty &&
-      _zipCodeController.text.trim().length == 8 &&
-      int.tryParse(_guestCountController.text.trim()) != null &&
+      onlyDigits(_zipCodeController.text).length == 8 &&
+      (_guestCount ?? 0) > 0 &&
       _cityCodigoIbge != null &&
       _stateCodigoUf != null &&
       _startDate != null &&
       _endDate != null &&
-      !_endDate!.isBefore(_startDate!);
+      !_hasInvalidDateRange;
 
   Future<void> _pickDate({required bool isStart}) async {
     final now = DateTime.now();
@@ -98,10 +105,10 @@ class _NewPartyPageState extends ConsumerState<NewPartyPage> {
       neighborhood: _neighborhoodController.text.trim(),
       cityCodigoIbge: _cityCodigoIbge!,
       stateCodigoUf: _stateCodigoUf!,
-      zipCode: _zipCodeController.text.trim(),
+      zipCode: onlyDigits(_zipCodeController.text),
       startDate: _startDate!,
       endDate: _endDate!,
-      guestCount: int.parse(_guestCountController.text.trim()),
+      guestCount: _guestCount!,
       name: _nameController.text.trim().isEmpty
           ? null
           : _nameController.text.trim(),
@@ -159,6 +166,8 @@ class _NewPartyPageState extends ConsumerState<NewPartyPage> {
               label: 'Número de convidados',
               controller: _guestCountController,
               keyboardType: TextInputType.number,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              maxLength: 6,
               onChanged: (_) => setState(() {}),
             ),
             OutlinedButton(
@@ -177,6 +186,11 @@ class _NewPartyPageState extends ConsumerState<NewPartyPage> {
                     : 'Término: ${dateFormat.format(_endDate!)}',
               ),
             ),
+            if (_hasInvalidDateRange)
+              Text(
+                'A data de término não pode ser anterior à data de início.',
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
             AppButton.save(
               label: 'Salvar festa',
               isLoading: _isSaving,

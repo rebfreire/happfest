@@ -18,6 +18,11 @@ abstract class ProductDetail with _$ProductDetail {
     @Default([]) List<String> imageUrls,
     String? storeName,
     String? description,
+
+    /// Preço por unidade de cobrança da variante padrão (`finalPrice`, com
+    /// desconto, ou `price`). `pricingUnitMin`/`Max` são limites de
+    /// QUANTIDADE da unidade (ex.: mínimo 1 hora), não preço.
+    double? price,
     String? pricingUnitLabel,
     double? pricingUnitMin,
     double? pricingUnitMax,
