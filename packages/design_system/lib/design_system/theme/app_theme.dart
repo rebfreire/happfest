@@ -63,7 +63,9 @@ abstract final class AppTheme {
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          minimumSize: const Size.fromHeight(48),
+          // Largura mínima finita: `Size.fromHeight` força largura infinita
+          // e quebra TextButtons dentro de Row/ListView horizontal.
+          minimumSize: const Size(64, 48),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.md),
           ),
